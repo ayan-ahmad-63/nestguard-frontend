@@ -1,5 +1,5 @@
-import markImage from "@/imports/Untitled_design__1_-Photoroom.png";
-import lockupImage from "@/imports/Untitled_design__2_-Photoroom.png";
+import markImage from "@/imports/Untitled_design__1_.png";
+import lockupImage from "@/imports/Untitled_design__2_.png";
 
 // In Next.js, imported images are objects with a .src property
 const markSrc = typeof markImage === "string" ? markImage : (markImage as any).src;
