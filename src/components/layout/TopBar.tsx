@@ -237,7 +237,19 @@ export default function TopBar({ page, onNavigate, onLogout, alerts = [] }: Prop
                 warden@nestguard.in
               </div>
             </div>
-            <div className="py-1">
+            <div className="py-1 flex flex-col gap-1">
+              <a
+                href={
+                  process.env.NEXT_PUBLIC_MARKETING_URL?.replace(/\/$/, "") ||
+                  (process.env.NODE_ENV === "development"
+                    ? "http://localhost:3001"
+                    : "https://nestguard.live")
+                }
+                className="w-full text-left px-4 py-2 rounded-xl text-xs cursor-pointer transition-colors flex items-center gap-2.5 text-ng-secondary hover:text-ng-text font-display font-medium hover:bg-white/5 border border-transparent no-underline"
+              >
+                <span className="text-sm">↗</span>
+                <span>Visit nestguard.live</span>
+              </a>
               {onLogout && (
                 <button
                   onClick={() => {
