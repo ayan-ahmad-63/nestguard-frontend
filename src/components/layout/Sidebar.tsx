@@ -1,7 +1,7 @@
 import React from "react";
-import { LogoMark } from "../ui/Logo";
 import type { Page } from "../../types";
 import Link from "next/link";
+import Image from "next/image";
 
 export { type Page };
 
@@ -134,7 +134,7 @@ export default function Sidebar({
         className={`h-16 flex items-center gap-3.5 shrink-0 border-b border-ng-border cursor-pointer no-underline hover:bg-white/[0.02] transition-colors ${expanded ? "px-6" : "justify-center"}`}
         title="NestGuard Dashboard"
       >
-        <LogoMark size={32} />
+        <Image src="/logo-mark.png" alt="NestGuard Logo Mark" width={553} height={587} className="h-10 w-10 object-contain shrink-0" priority />
         {expanded && (
           <span className="font-semibold text-lg whitespace-nowrap tracking-tight font-display text-ng-text">
             NestGuard

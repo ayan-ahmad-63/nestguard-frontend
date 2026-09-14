@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: "NestGuard",
   description: "Next-generation hostel security platform",
   icons: {
-    icon: "/icon.svg",
+    icon: "/icon.png",
   },
 };
 

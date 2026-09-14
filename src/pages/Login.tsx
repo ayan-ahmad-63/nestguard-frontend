@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { LogoLockup } from "../components/ui/Logo";
+import Image from "next/image";
 import FloatingThemeToggle from "../components/ui/FloatingThemeToggle";
 import Icon3D from "../components/ui/Icon3D";
 
@@ -73,7 +73,7 @@ export default function Login({ onLogin, onBack }: Props) {
 
         {/* Brand */}
         <div className="flex flex-col items-center gap-4 mb-10 text-center relative z-10">
-          <LogoLockup variant="stacked" height={130} />
+          <Image src="/logo-stacked.png" alt="NestGuard" width={586} height={373} className="h-[160px] w-auto object-contain shrink-0" priority />
           <div>
             <div className="text-xs font-mono uppercase tracking-widest text-ng-secondary mb-1.5">
               Access Control Console
