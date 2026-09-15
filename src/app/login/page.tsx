@@ -1,5 +1,5 @@
 "use client";
-import Login from "@/pages/Login";
+import Login from "@/views/Login";
 import { useRouter } from "next/navigation";
 import { useAppContext } from "@/components/providers/AppProvider";
 

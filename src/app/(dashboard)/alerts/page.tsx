@@ -1,5 +1,5 @@
 "use client";
-import Alerts from "@/pages/Alerts";
+import Alerts from "@/views/Alerts";
 export default function Page() {
   return <Alerts />;
 }

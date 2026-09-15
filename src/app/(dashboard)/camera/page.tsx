@@ -1,5 +1,5 @@
 "use client";
-import LiveCamera from "@/pages/LiveCamera";
+import LiveCamera from "@/views/LiveCamera";
 export default function Page() {
   return <LiveCamera />;
 }
