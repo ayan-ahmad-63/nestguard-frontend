@@ -96,7 +96,6 @@ function NavIcon({ id, active }: { id: Page; active: boolean }) {
 interface Props {
   active: Page;
   expanded: boolean;
-  onNavigate: (p: Page) => void;
   onToggle: () => void;
   alertCount?: number;
   visitorCount?: number;
@@ -105,7 +104,6 @@ interface Props {
 export default function Sidebar({
   active,
   expanded,
-  onNavigate,
   onToggle,
   alertCount = 0,
   visitorCount = 0,

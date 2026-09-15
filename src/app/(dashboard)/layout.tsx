@@ -39,7 +39,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <Sidebar
           active={page}
           expanded={expanded}
-          onNavigate={() => {}}
           onToggle={() => setExpanded(!expanded)}
           alertCount={unreadAlertCount}
           visitorCount={2}

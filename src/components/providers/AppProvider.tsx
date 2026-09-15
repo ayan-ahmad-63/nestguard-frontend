@@ -51,16 +51,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const unreadAlertCount = alerts.filter((a) => !a.acknowledged).length;
 
-  // Apply persisted theme before first paint to prevent flash of wrong theme
-  useEffect(() => {
-    const saved = localStorage.getItem("ng-theme");
-    if (saved === "light") {
-      document.documentElement.classList.add("light");
-    } else {
-      document.documentElement.classList.remove("light");
-    }
-  }, []);
-
   return (
     <AppContext.Provider value={{ authed, setAuthed, alerts, setAlerts, unreadAlertCount }}>
       {children}

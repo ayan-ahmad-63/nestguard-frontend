@@ -23,6 +23,7 @@ export default function Login({ onLogin, onBack }: Props) {
       return;
     }
     setError(null);
+    document.cookie = "ng_session=true; path=/; max-age=86400";
     onLogin();
   };
 
@@ -31,6 +32,7 @@ export default function Login({ onLogin, onBack }: Props) {
     setError(null);
     setTimeout(() => {
       setScanning(false);
+      document.cookie = "ng_session=true; path=/; max-age=86400";
       onLogin();
     }, 1200);
   };
@@ -38,10 +40,10 @@ export default function Login({ onLogin, onBack }: Props) {
   const fillDemo = (role: "warden" | "admin") => {
     if (role === "warden") {
       setEmail("warden@nestguard.in");
-      setPassword("HostelSecurity2026!");
+      setPassword("");
     } else {
       setEmail("admin@nestguard.in");
-      setPassword("SuperAdminSecurePass#");
+      setPassword("");
     }
     setError(null);
   };

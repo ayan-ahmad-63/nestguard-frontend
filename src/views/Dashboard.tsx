@@ -3,41 +3,12 @@ import StatusPill from "../components/ui/StatusPill";
 import Avatar from "../components/ui/Avatar";
 import Modal from "../components/ui/Modal";
 import type { StatusType, Page } from "../types";
+import { GATES, INITIAL_LOGS, INITIAL_VISITORS, INITIAL_ALERTS } from "../data/mock";
 
 interface Props {
   onNavigate?: (p: Page) => void;
 }
 
-const GATES = [
-  { name: "Main Gate", status: "safe" as StatusType },
-  { name: "Block A", status: "attention" as StatusType },
-  { name: "Block B", status: "safe" as StatusType },
-  { name: "Block C", status: "safe" as StatusType },
-  { name: "Service Entry", status: "critical" as StatusType },
-  { name: "Rear Exit", status: "safe" as StatusType },
-];
-
-const INITIAL_LOGS = [
-  { id: "L1", initials: "RS", name: "Rahul Sharma", gate: "Main Gate", method: "Fingerprint", time: "09:41:02", status: "safe" as StatusType, roll: "BSE-2022-041", confidence: 99.4 },
-  { id: "L2", initials: "PK", name: "Priya Kapoor", gate: "Block A", method: "Card", time: "09:38:17", status: "safe" as StatusType, roll: "BSE-2022-119", confidence: 100 },
-  { id: "L3", initials: "AM", name: "Arun Mehta", gate: "Block B", method: "Fingerprint", time: "09:35:44", status: "safe" as StatusType, roll: "BSE-2021-088", confidence: 98.7 },
-  { id: "L4", initials: "VT", name: "Visitor · Teja", gate: "Main Gate", method: "Manual", time: "09:31:08", status: "attention" as StatusType, roll: "VIS-9912", confidence: 92.0 },
-  { id: "L5", initials: "SK", name: "Suresh Kumar", gate: "Service Entry", method: "Fingerprint", time: "09:27:55", status: "critical" as StatusType, roll: "BSE-2023-014", confidence: 87.2 },
-  { id: "L6", initials: "NR", name: "Nisha Reddy", gate: "Block A", method: "Card", time: "09:24:33", status: "safe" as StatusType, roll: "BSE-2022-054", confidence: 100 },
-  { id: "L7", initials: "DM", name: "Dev Mishra", gate: "Block C", method: "Fingerprint", time: "09:20:11", status: "safe" as StatusType, roll: "BSE-2021-177", confidence: 99.1 },
-];
-
-const INITIAL_VISITORS = [
-  { id: 1, name: "Ravi Teja", host: "Rahul Sharma", since: "09:25", status: "pending" as const },
-  { id: 2, name: "Anjali Singh", host: "Priya Kapoor", since: "09:10", status: "approved" as const },
-  { id: 3, name: "Kumar Patel", host: "Dev Mishra", since: "08:55", status: "pending" as const },
-];
-
-const INITIAL_ALERTS = [
-  { id: 101, msg: "Unauthorized attempt — Service Entry", time: "09:27", sev: "critical" as const },
-  { id: 102, msg: "Block A held open >30s", time: "09:22", sev: "attention" as const },
-  { id: 103, msg: "Device offline — Block C reader", time: "08:55", sev: "attention" as const },
-];
 
 export default function Dashboard({ onNavigate }: Props) {
   const [selectedGate, setSelectedGate] = useState<string | null>(null);

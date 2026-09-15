@@ -253,6 +253,7 @@ export default function TopBar({ page, onNavigate, onLogout, alerts = [] }: Prop
               {onLogout && (
                 <button
                   onClick={() => {
+                    document.cookie = "ng_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
                     setUserMenuOpen(false);
                     onLogout();
                   }}
