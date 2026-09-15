@@ -2,8 +2,9 @@
 const nextConfig = {
   reactStrictMode: true,
   output: 'standalone',
+  productionBrowserSourceMaps: false,
   images: {
-    unoptimized: true,
+    // Optimization enabled (requires sharp in production)
   },
   devIndicators: {
     position: 'bottom-right',
