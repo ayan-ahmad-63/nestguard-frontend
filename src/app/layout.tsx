@@ -21,6 +21,10 @@ export const metadata: Metadata = {
   icons: {
     icon: "/icon.png",
   },
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default function RootLayout({
