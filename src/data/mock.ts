@@ -10,13 +10,13 @@ export const GATES = [
 ];
 
 export const INITIAL_LOGS = [
-  { id: "L1", initials: "RS", name: "Rahul Sharma", gate: "Main Gate", method: "Fingerprint", time: "09:41:02", status: "safe" as StatusType, roll: "BSE-2022-041", confidence: 99.4 },
-  { id: "L2", initials: "PK", name: "Priya Kapoor", gate: "Block A", method: "Card", time: "09:38:17", status: "safe" as StatusType, roll: "BSE-2022-119", confidence: 100 },
-  { id: "L3", initials: "AM", name: "Arun Mehta", gate: "Block B", method: "Fingerprint", time: "09:35:44", status: "safe" as StatusType, roll: "BSE-2021-088", confidence: 98.7 },
-  { id: "L4", initials: "VT", name: "Visitor · Teja", gate: "Main Gate", method: "Manual", time: "09:31:08", status: "attention" as StatusType, roll: "VIS-9912", confidence: 92.0 },
-  { id: "L5", initials: "SK", name: "Suresh Kumar", gate: "Service Entry", method: "Fingerprint", time: "09:27:55", status: "critical" as StatusType, roll: "BSE-2023-014", confidence: 87.2 },
-  { id: "L6", initials: "NR", name: "Nisha Reddy", gate: "Block A", method: "Card", time: "09:24:33", status: "safe" as StatusType, roll: "BSE-2022-054", confidence: 100 },
-  { id: "L7", initials: "DM", name: "Dev Mishra", gate: "Block C", method: "Fingerprint", time: "09:20:11", status: "safe" as StatusType, roll: "BSE-2021-177", confidence: 99.1 },
+  { id: "L1", initials: "RS", name: "Rahul Sharma", gate: "Main Gate", method: "Fingerprint", time: "09:41:02", status: "safe" as StatusType, rollNo: "BSE-2022-041", confidence: 99.4 },
+  { id: "L2", initials: "PK", name: "Priya Kapoor", gate: "Block A", method: "Card", time: "09:38:17", status: "safe" as StatusType, rollNo: "BSE-2022-119", confidence: 100 },
+  { id: "L3", initials: "AM", name: "Arun Mehta", gate: "Block B", method: "Fingerprint", time: "09:35:44", status: "safe" as StatusType, rollNo: "BSE-2021-088", confidence: 98.7 },
+  { id: "L4", initials: "VT", name: "Visitor · Teja", gate: "Main Gate", method: "Manual", time: "09:31:08", status: "attention" as StatusType, rollNo: "VIS-9912", confidence: 92.0 },
+  { id: "L5", initials: "SK", name: "Suresh Kumar", gate: "Service Entry", method: "Fingerprint", time: "09:27:55", status: "critical" as StatusType, rollNo: "BSE-2023-014", confidence: 87.2 },
+  { id: "L6", initials: "NR", name: "Nisha Reddy", gate: "Block A", method: "Card", time: "09:24:33", status: "safe" as StatusType, rollNo: "BSE-2022-054", confidence: 100 },
+  { id: "L7", initials: "DM", name: "Dev Mishra", gate: "Block C", method: "Fingerprint", time: "09:20:11", status: "safe" as StatusType, rollNo: "BSE-2021-177", confidence: 99.1 },
 ];
 
 export const INITIAL_VISITORS = [

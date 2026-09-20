@@ -1,6 +1,7 @@
 "use client";
 import React, { createContext, useContext, useEffect, useState } from "react";
 import type { AlertItem } from "@/types";
+import { INITIAL_VISITORS } from "@/data/mock";
 
 const INITIAL_GLOBAL_ALERTS: AlertItem[] = [
   {
@@ -41,6 +42,8 @@ type AppContextType = {
   alerts: AlertItem[];
   setAlerts: (alerts: AlertItem[]) => void;
   unreadAlertCount: number;
+  pendingVisitorCount: number;
+  setPendingVisitorCount: (n: number) => void;
 };
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -48,11 +51,14 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [authed, setAuthed] = useState(false);
   const [alerts, setAlerts] = useState<AlertItem[]>(INITIAL_GLOBAL_ALERTS);
+  const [pendingVisitorCount, setPendingVisitorCount] = useState(
+    INITIAL_VISITORS.filter((v) => v.status === "pending").length
+  );
 
   const unreadAlertCount = alerts.filter((a) => !a.acknowledged).length;
 
   return (
-    <AppContext.Provider value={{ authed, setAuthed, alerts, setAlerts, unreadAlertCount }}>
+    <AppContext.Provider value={{ authed, setAuthed, alerts, setAlerts, unreadAlertCount, pendingVisitorCount, setPendingVisitorCount }}>
       {children}
     </AppContext.Provider>
   );

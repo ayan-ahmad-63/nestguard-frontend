@@ -4,7 +4,6 @@ import { usePathname, useRouter } from "next/navigation";
 import Sidebar from "@/components/layout/Sidebar";
 import TopBar from "@/components/layout/TopBar";
 import { useAppContext } from "@/components/providers/AppProvider";
-import { C, F } from "@/lib/constants";
 import type { Page } from "@/types";
 
 const PAGE_TITLES: Record<string, { title: string; subtitle: string; page: Page }> = {
@@ -19,7 +18,7 @@ const PAGE_TITLES: Record<string, { title: string; subtitle: string; page: Page 
 };
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { alerts, unreadAlertCount, setAuthed } = useAppContext();
+  const { alerts, unreadAlertCount, setAuthed, pendingVisitorCount } = useAppContext();
   const pathname = usePathname() || "/dashboard";
   const [expanded, setExpanded] = useState(true);
   const router = useRouter();
@@ -41,7 +40,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           expanded={expanded}
           onToggle={() => setExpanded(!expanded)}
           alertCount={unreadAlertCount}
-          visitorCount={2}
+          visitorCount={pendingVisitorCount}
         />
         <div className="flex-1 min-w-0 p-3 sm:p-4 flex flex-col">
           <div className="h-full flex flex-col rounded-[1.5rem] border border-ng-border overflow-hidden relative shadow-inner bg-ng-bg">

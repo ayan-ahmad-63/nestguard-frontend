@@ -1,4 +1,4 @@
-import { C, F } from "../../lib/constants";
+import { C } from "../../lib/constants";
 import type { StatusType } from "../../types";
 
 const statusMap: Record<StatusType, { dot: string; label: string; glow: string }> = {
@@ -19,10 +19,8 @@ export default function StatusPill({ status, label, pulse = true }: Props) {
 
   return (
     <span
-      className="inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 border select-none"
+      className="inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 border select-none font-mono text-[11px]"
       style={{
-        fontFamily: F.mono,
-        fontSize: 11,
         color: C.secondary,
         background: C.elevated,
         borderColor: C.border,

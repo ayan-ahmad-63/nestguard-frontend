@@ -19,6 +19,7 @@ export default function Dashboard({ onNavigate }: Props) {
   // Modals state
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
   const [aiReviewed, setAiReviewed] = useState(false);
+  const [aiAction, setAiAction] = useState<"dismissed" | "escalated" | null>(null);
   const [selectedLog, setSelectedLog] = useState<typeof INITIAL_LOGS[0] | null>(null);
 
   const filteredLogs = selectedGate
@@ -131,7 +132,7 @@ export default function Dashboard({ onNavigate }: Props) {
                             {row.name}
                           </div>
                           <div className="text-[10px] font-mono text-ng-muted tracking-tight">
-                            {row.roll}
+                            {row.rollNo}
                           </div>
                         </div>
                       </div>
@@ -353,6 +354,7 @@ export default function Dashboard({ onNavigate }: Props) {
           <div className="flex flex-col sm:flex-row gap-3 pt-5 border-t border-ng-border justify-end mt-2">
             <button
               onClick={() => {
+                setAiAction("dismissed");
                 setAiReviewed(true);
                 setReviewModalOpen(false);
               }}
@@ -362,6 +364,7 @@ export default function Dashboard({ onNavigate }: Props) {
             </button>
             <button
               onClick={() => {
+                setAiAction("escalated");
                 setAiReviewed(true);
                 setReviewModalOpen(false);
               }}
@@ -386,7 +389,7 @@ export default function Dashboard({ onNavigate }: Props) {
               <div className="p-4 rounded-xl border border-ng-border bg-ng-elevated shadow-inner">
                 <span className="text-[10px] font-mono uppercase tracking-widest font-bold text-ng-muted block mb-1.5">Resident</span>
                 <span className="font-semibold text-base font-display text-ng-text block mb-0.5">{selectedLog.name}</span>
-                <span className="text-[11px] font-mono text-ng-secondary block">{selectedLog.roll}</span>
+                <span className="text-[11px] font-mono text-ng-secondary block">{selectedLog.rollNo}</span>
               </div>
               <div className="p-4 rounded-xl border border-ng-border bg-ng-elevated shadow-inner">
                 <span className="text-[10px] font-mono uppercase tracking-widest font-bold text-ng-muted block mb-1.5">Location / Gate</span>
