@@ -1,7 +1,6 @@
 "use client";
 import React, { createContext, useContext, useEffect, useRef, useState, useCallback, useMemo } from "react";
 import type { AlertItem, AccessLog } from "@/types";
-import { INITIAL_VISITORS, INITIAL_LOGS } from "@/data/mock";
 import type { Socket } from "socket.io-client";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
@@ -40,10 +39,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
 
   const [alerts, setAlerts] = useState<AlertItem[]>(INITIAL_GLOBAL_ALERTS);
-  const [liveLogs, setLiveLogs] = useState<AccessLog[]>(INITIAL_LOGS);
-  const [pendingVisitorCount, setPendingVisitorCount] = useState(
-    INITIAL_VISITORS.filter((v) => v.status === "pending").length
-  );
+  const [liveLogs, setLiveLogs] = useState<AccessLog[]>([]);
+  const [pendingVisitorCount, setPendingVisitorCount] = useState<number>(0);
   const [wsConnected, setWsConnected] = useState(false);
 
   const logout = useCallback(() => {

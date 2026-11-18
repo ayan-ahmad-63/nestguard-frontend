@@ -3,8 +3,12 @@ import StatusPill from "../components/ui/StatusPill";
 import Avatar from "../components/ui/Avatar";
 import Modal from "../components/ui/Modal";
 import type { StatusType, Page } from "../types";
-import { GATES, INITIAL_VISITORS } from "../data/mock";
 import { useAppContext } from "../components/providers/AppProvider";
+
+const GATES: { name: string; status: StatusType }[] = [
+  { name: "Main Gate Entry", status: "safe" },
+  { name: "Main Gate Exit", status: "safe" },
+];
 
 interface Props {
   onNavigate?: (p: Page) => void;
@@ -18,7 +22,7 @@ export default function Dashboard({ onNavigate }: Props) {
   const isWarden = role === "warden";
   const isAdmin = role === "admin";
   const [selectedGate, setSelectedGate] = useState<string | null>(null);
-  const [visitors, setVisitors] = useState(INITIAL_VISITORS);
+  const [visitors, setVisitors] = useState<any[]>([]);
 
   // Modals state
   const [selectedLog, setSelectedLog] = useState<typeof liveLogs[0] | null>(null);
