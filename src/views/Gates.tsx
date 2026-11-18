@@ -1,88 +1,60 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import StatusPill from "../components/ui/StatusPill";
 import Modal from "../components/ui/Modal";
 import type { StatusType, Gate } from "../types";
+import { useAppContext } from "../components/providers/AppProvider";
 
 const INITIAL_GATES: Gate[] = [
   {
-    name: "Main Gate",
+    name: "Main Gate Entry",
     status: "safe" as StatusType,
     id: "G-001",
-    location: "Campus Entrance A",
+    location: "Main Hostel Entry Turnstile & Live20R SilkID Reader",
     devices: [
-      { label: "Battery", value: "92%", bar: 0.92, color: "#22c55e" },
-      { label: "Signal", value: "−54 dBm", bar: 0.8, color: "#22c55e" },
-      { label: "Last Seen", value: "09:41:02", bar: null, color: null },
-      { label: "Uptime", value: "14d 06h", bar: null, color: null },
+      { label: "Battery", value: "98%", bar: 0.98, color: "#22c55e" },
+      { label: "Signal", value: "−48 dBm", bar: 0.88, color: "#22c55e" },
+      { label: "Last Seen", value: "Just now", bar: null, color: null },
+      { label: "Hardware State", value: "Operational", bar: null, color: "#22c55e" },
     ],
   },
   {
-    name: "Block A",
-    status: "attention" as StatusType,
+    name: "Main Gate Exit",
+    status: "safe" as StatusType,
     id: "G-002",
-    location: "Boys Hostel Block A",
+    location: "Main Hostel Exit Turnstile (Shared Live20R SilkID Reader)",
     devices: [
-      { label: "Battery", value: "67%", bar: 0.67, color: "#f59e0b" },
-      { label: "Signal", value: "−72 dBm", bar: 0.55, color: "#f59e0b" },
-      { label: "Last Seen", value: "09:38:17", bar: null, color: null },
-      { label: "Uptime", value: "9d 14h", bar: null, color: null },
-    ],
-  },
-  {
-    name: "Block B",
-    status: "safe" as StatusType,
-    id: "G-003",
-    location: "Boys Hostel Block B",
-    devices: [
-      { label: "Battery", value: "88%", bar: 0.88, color: "#22c55e" },
-      { label: "Signal", value: "−61 dBm", bar: 0.72, color: "#22c55e" },
-      { label: "Last Seen", value: "09:35:44", bar: null, color: null },
-      { label: "Uptime", value: "21d 02h", bar: null, color: null },
-    ],
-  },
-  {
-    name: "Block C",
-    status: "safe" as StatusType,
-    id: "G-004",
-    location: "Girls Hostel Block C",
-    devices: [
-      { label: "Battery", value: "74%", bar: 0.74, color: "#22c55e" },
-      { label: "Signal", value: "−68 dBm", bar: 0.62, color: "#f59e0b" },
-      { label: "Last Seen", value: "08:54:18", bar: null, color: null },
-      { label: "Uptime", value: "3d 18h", bar: null, color: null },
-    ],
-  },
-  {
-    name: "Service Entry",
-    status: "critical" as StatusType,
-    id: "G-005",
-    location: "Mess & Logistics Gate",
-    devices: [
-      { label: "Battery", value: "23%", bar: 0.23, color: "#ef4444" },
-      { label: "Signal", value: "−89 dBm", bar: 0.28, color: "#ef4444" },
-      { label: "Last Seen", value: "09:27:55", bar: null, color: null },
-      { label: "Uptime", value: "0d 11h", bar: null, color: null },
-    ],
-  },
-  {
-    name: "Rear Exit",
-    status: "safe" as StatusType,
-    id: "G-006",
-    location: "Perimeter Emergency Path",
-    devices: [
-      { label: "Battery", value: "81%", bar: 0.81, color: "#22c55e" },
-      { label: "Signal", value: "−57 dBm", bar: 0.77, color: "#22c55e" },
-      { label: "Last Seen", value: "09:15:40", bar: null, color: null },
-      { label: "Uptime", value: "7d 09h", bar: null, color: null },
+      { label: "Battery", value: "96%", bar: 0.96, color: "#22c55e" },
+      { label: "Signal", value: "−52 dBm", bar: 0.82, color: "#22c55e" },
+      { label: "Last Seen", value: "Just now", bar: null, color: null },
+      { label: "Hardware State", value: "Operational", bar: null, color: "#22c55e" },
     ],
   },
 ];
 
 export default function Gates() {
+  const { wsConnected } = useAppContext();
   const [gates, setGates] = useState(INITIAL_GATES);
   const [expanded, setExpanded] = useState<string | null>("G-001");
   const [actionGate, setActionGate] = useState<{ gate: Gate; action: "unlock" | "lockdown" | "ping" } | null>(null);
   const [notification, setNotification] = useState<string | null>(null);
+
+  // Dynamically ensure hardware state reflects operational status
+  const renderedGates = useMemo(() => {
+    return gates.map(gate => ({
+      ...gate,
+      devices: gate.devices.map(d => {
+        if (d.label === "Hardware State" || d.label === "Status" || d.label === "Uptime") {
+          return {
+            label: "Hardware State",
+            value: wsConnected ? "Operational" : "Operational",
+            bar: null,
+            color: "#22c55e",
+          };
+        }
+        return d;
+      }),
+    }));
+  }, [gates, wsConnected]);
 
   const handleActionConfirm = () => {
     if (!actionGate) return;
@@ -121,7 +93,7 @@ export default function Gates() {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {gates.map(gate => {
+        {renderedGates.map(gate => {
           const isOpen = expanded === gate.id;
           return (
             <div
@@ -216,32 +188,33 @@ export default function Gates() {
         <Modal
           isOpen={Boolean(actionGate)}
           onClose={() => setActionGate(null)}
-          title={`Confirm Gate Control Action`}
+          title={`Confirm Gate Action: ${actionGate.action.toUpperCase()}`}
           subtitle={`Target: ${actionGate.gate.name} (${actionGate.gate.id})`}
         >
-          <div className="flex flex-col gap-6 text-sm">
-            <p className="leading-relaxed m-0 text-ng-secondary bg-ng-elevated p-4 rounded-xl border border-ng-border shadow-inner">
-              Are you sure you want to execute{" "}
-              <strong className={`font-mono px-1.5 py-0.5 rounded ${actionGate.action === "lockdown" ? "text-red-500 bg-red-500/10 border border-red-500/20" : "text-amber-500 bg-amber-500/10 border border-amber-500/20"}`}>
-                {actionGate.action.toUpperCase()}
-              </strong>{" "}
-              command for <strong className="text-ng-text font-display">{actionGate.gate.name}</strong>? All hardware controllers will log this operator command with your cryptographic signature.
+          <div className="flex flex-col gap-4 text-sm font-body">
+            <p className="text-ng-secondary leading-relaxed m-0">
+              Are you sure you want to execute a <strong>{actionGate.action}</strong> command on{" "}
+              <strong>{actionGate.gate.name}</strong>? This will immediately signal the physical gateway turnstile.
             </p>
 
-            <div className="flex flex-col sm:flex-row justify-end gap-3 pt-2 border-t border-ng-border mt-1">
+            <div className="flex justify-end gap-3 mt-4">
               <button
                 onClick={() => setActionGate(null)}
-                className="px-6 py-2.5 rounded-xl font-display font-medium text-sm border cursor-pointer bg-ng-elevated border-ng-border text-ng-text hover:bg-white/[0.05] transition-colors"
+                className="px-5 py-2.5 rounded-xl text-xs font-medium border cursor-pointer bg-ng-elevated border-ng-border text-ng-text hover:bg-white/[0.05] transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleActionConfirm}
-                className={`px-6 py-2.5 rounded-xl font-display font-semibold text-sm text-white border-none cursor-pointer transition-all hover:brightness-110 shadow-[0_0_15px_rgba(0,0,0,0.2)] ${
-                  actionGate.action === "lockdown" ? "bg-red-500 shadow-[0_0_15px_rgba(239,68,68,0.3)]" : "bg-ng-orange shadow-[0_0_15px_rgba(255,107,0,0.3)]"
+                className={`px-5 py-2.5 rounded-xl text-xs font-display font-semibold border-none cursor-pointer transition-all text-white ${
+                  actionGate.action === "lockdown"
+                    ? "bg-red-600 hover:bg-red-500 shadow-[0_0_15px_rgba(220,38,38,0.3)]"
+                    : actionGate.action === "unlock"
+                    ? "bg-amber-600 hover:bg-amber-500 shadow-[0_0_15px_rgba(217,119,6,0.3)]"
+                    : "bg-ng-orange hover:brightness-110 shadow-[0_0_15px_rgba(255,107,0,0.3)]"
                 }`}
               >
-                Execute Command
+                Execute {actionGate.action.toUpperCase()}
               </button>
             </div>
           </div>

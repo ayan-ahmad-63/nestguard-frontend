@@ -4,19 +4,28 @@ import Avatar from "../components/ui/Avatar";
 import Modal from "../components/ui/Modal";
 import { exportToCSV } from "../lib/utils";
 import type { AccessLog } from "../types";
-import { ALL_LOGS } from "../data/mock";
+import { useAppContext } from "../components/providers/AppProvider";
 
 const METHODS = ["All", "Fingerprint", "Card", "Manual", "None"];
 const STATUSES = ["All", "Safe", "Attention", "Critical"];
 
 export default function AccessLogs() {
-  const [logs] = useState(ALL_LOGS);
+  const { liveLogs } = useAppContext();
+  // Deduplicate logs by unique ID
+  const seenIds = new Set<string>();
+  const logsList: AccessLog[] = liveLogs.filter((l) => {
+    if (!l.id || seenIds.has(l.id)) return false;
+    seenIds.add(l.id);
+    return true;
+  });
   const [method, setMethod] = useState("All");
   const [status, setStatus] = useState("All");
   const [search, setSearch] = useState("");
   const [selectedLog, setSelectedLog] = useState<AccessLog | null>(null);
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 15;
 
-  const filtered = logs.filter(l => {
+  const filtered = logsList.filter(l => {
     if (method !== "All" && l.method !== method) return false;
     if (status !== "All" && l.status !== status.toLowerCase()) return false;
     if (
@@ -29,6 +38,10 @@ export default function AccessLogs() {
     }
     return true;
   });
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const paginatedLogs = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   const handleExport = () => {
     exportToCSV("nestguard-access-logs", filtered);
@@ -45,7 +58,10 @@ export default function AccessLogs() {
             <input
               placeholder="Filter by name, roll no, gate…"
               value={search}
-              onChange={e => setSearch(e.target.value)}
+              onChange={e => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
               className="bg-transparent border-none outline-none w-full text-xs font-body text-ng-text placeholder-ng-muted"
             />
           </div>
@@ -55,7 +71,10 @@ export default function AccessLogs() {
             {METHODS.map(m => (
               <button
                 key={m}
-                onClick={() => setMethod(m)}
+                onClick={() => {
+                  setMethod(m);
+                  setPage(1);
+                }}
                 className={`px-3 py-1.5 rounded-lg text-[11px] font-mono font-medium cursor-pointer transition-colors border-none ${
                   method === m ? "bg-ng-orange/15 text-ng-orange" : "bg-transparent text-ng-muted hover:text-ng-text"
                 }`}
@@ -70,7 +89,10 @@ export default function AccessLogs() {
             {STATUSES.map(s => (
               <button
                 key={s}
-                onClick={() => setStatus(s)}
+                onClick={() => {
+                  setStatus(s);
+                  setPage(1);
+                }}
                 className={`px-3 py-1.5 rounded-lg text-[11px] font-mono font-medium cursor-pointer transition-colors border-none ${
                   status === s ? "bg-ng-orange/15 text-ng-orange" : "bg-transparent text-ng-muted hover:text-ng-text"
                 }`}
@@ -113,7 +135,7 @@ export default function AccessLogs() {
             </tr>
           </thead>
           <tbody className="divide-y divide-ng-border">
-            {filtered.map(row => (
+            {paginatedLogs.map(row => (
               <tr
                 key={row.id}
                 onClick={() => setSelectedLog(row)}
@@ -161,6 +183,34 @@ export default function AccessLogs() {
           </tbody>
         </table>
       </div>
+
+      {/* Pagination Footer */}
+      {filtered.length > PAGE_SIZE && (
+        <div className="px-6 py-4 border-t border-ng-border flex items-center justify-between flex-wrap gap-3 bg-ng-elevated/20 text-xs font-mono">
+          <span className="text-ng-muted">
+            Showing {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, filtered.length)} of {filtered.length} logs
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+              disabled={currentPage <= 1}
+              className="px-3 py-1.5 rounded-lg border border-ng-border bg-ng-elevated text-ng-text disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white/[0.05] transition-all cursor-pointer font-bold"
+            >
+              ← Prev
+            </button>
+            <span className="px-2 text-ng-secondary font-bold">
+              {currentPage} / {totalPages}
+            </span>
+            <button
+              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage >= totalPages}
+              className="px-3 py-1.5 rounded-lg border border-ng-border bg-ng-elevated text-ng-text disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white/[0.05] transition-all cursor-pointer font-bold"
+            >
+              Next →
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Audit Detail Modal */}
       {selectedLog && (

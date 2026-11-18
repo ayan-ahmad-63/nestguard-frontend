@@ -1,5 +1,6 @@
 import React from "react";
 import type { Metadata } from "next";
+import Script from "next/script";
 import { AppProvider } from "@/components/providers/AppProvider";
 import { Onest, Space_Mono } from "next/font/google";
 import "@/index.css";
@@ -35,13 +36,15 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className={`${onest.variable} ${spaceMono.variable}`}>
       <head>
-        <script
+        <Script
+          id="ng-theme-script"
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `(function(){try{var t=localStorage.getItem('ng-theme');if(t==='light')document.documentElement.classList.add('light');}catch(e){}})();`,
           }}
         />
       </head>
-      <body>
+      <body suppressHydrationWarning>
         <AppProvider>{children}</AppProvider>
       </body>
     </html>

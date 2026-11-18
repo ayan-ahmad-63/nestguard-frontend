@@ -83,8 +83,13 @@ export default function Modal({
             )}
           </div>
           <button
-            onClick={onClose}
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-sm border transition-colors cursor-pointer"
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onClose();
+            }}
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-sm border transition-colors cursor-pointer relative z-20"
             style={{
               borderColor: C.border,
               background: C.elevated,

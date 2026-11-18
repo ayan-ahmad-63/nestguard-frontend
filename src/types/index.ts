@@ -6,7 +6,8 @@ export type Page =
   | "alerts"
   | "analytics"
   | "camera"
-  | "devices";
+  | "devices"
+  | "enrollment";
 
 export type StatusType = "safe" | "attention" | "critical" | "offline";
 
@@ -54,10 +55,11 @@ export interface Visitor {
 export type AlertSeverity = "critical" | "attention" | "safe";
 
 export interface AlertItem {
-  id: number;
+  id: number | string;
   sev: AlertSeverity;
   time: string;
   title: string;
+  msg?: string;
   detail: string;
   gate: string;
   user: string;

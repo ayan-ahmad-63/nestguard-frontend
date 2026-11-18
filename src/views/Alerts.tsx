@@ -1,68 +1,6 @@
 import { useState } from "react";
 import type { AlertItem, AlertSeverity } from "../types";
-
-const INITIAL_ALERTS: AlertItem[] = [
-  {
-    id: 1,
-    sev: "critical",
-    time: "09:27:55",
-    title: "Unauthorized access attempt",
-    detail: "Unknown fingerprint scanned 3 consecutive times at Service Entry. No biometric hash match in database.",
-    gate: "Service Entry",
-    user: "Unknown Person",
-    acknowledged: false,
-  },
-  {
-    id: 2,
-    sev: "attention",
-    time: "09:22:10",
-    title: "Door held open >30 seconds",
-    detail: "Block A main entrance magnetic latch remained unengaged for 47 seconds after valid scan. Tailgating risk.",
-    gate: "Block A",
-    user: "Priya Kapoor",
-    acknowledged: false,
-  },
-  {
-    id: 3,
-    sev: "attention",
-    time: "08:55:01",
-    title: "Reader offline — Block C",
-    detail: "Block C primary optical reader failed heartbeat telemetry check. Last ping recorded at 08:54:18.",
-    gate: "Block C",
-    user: "System Daemon",
-    acknowledged: false,
-  },
-  {
-    id: 4,
-    sev: "safe",
-    time: "08:30:44",
-    title: "Emergency unlock drill executed",
-    detail: "Warden initiated scheduled safety drill for Block B. All exit barriers disengaged and auto-relocked at 08:35:00.",
-    gate: "Block B",
-    user: "A. Warden",
-    acknowledged: true,
-  },
-  {
-    id: 5,
-    sev: "critical",
-    time: "07:58:20",
-    title: "After-hours access attempt",
-    detail: "Card scan detected at Rear Exit outside designated student permit curfew window (06:00 - 22:00).",
-    gate: "Rear Exit",
-    user: "Rohan Lal",
-    acknowledged: false,
-  },
-  {
-    id: 6,
-    sev: "attention",
-    time: "07:40:03",
-    title: "Multiple failed verification attempts",
-    detail: "Resident failed biometric match 5 times at Main Gate before succeeding via supervisor bypass.",
-    gate: "Main Gate",
-    user: "Suresh Kumar",
-    acknowledged: false,
-  },
-];
+import { useAppContext } from "../components/providers/AppProvider";
 
 const SEV_LABEL: Record<AlertSeverity, string> = {
   critical: "CRITICAL",
@@ -71,14 +9,24 @@ const SEV_LABEL: Record<AlertSeverity, string> = {
 };
 
 export default function Alerts() {
-  const [alerts, setAlerts] = useState(INITIAL_ALERTS);
-  const [expanded, setExpanded] = useState<number | null>(1);
+  const { alerts, setAlerts } = useAppContext();
+  const [expanded, setExpanded] = useState<number | string | null>(1);
   const [filter, setFilter] = useState<string>("All");
 
-  const handleAcknowledge = (id: number) => {
+  const handleAcknowledge = (id: number | string) => {
     setAlerts(prev =>
       prev.map(a => (a.id === id ? { ...a, acknowledged: true, sev: "safe" as AlertSeverity } : a)),
     );
+    if (typeof id === "string" && id.length === 24) {
+      const token = typeof window !== "undefined" ? localStorage.getItem("ng_token") : null;
+      fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/api/v1/alerts/${id}/acknowledge`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      }).catch(() => {});
+    }
   };
 
   const filtered = alerts.filter(a => {

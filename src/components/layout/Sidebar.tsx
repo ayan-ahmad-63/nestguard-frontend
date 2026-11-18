@@ -2,6 +2,8 @@ import React from "react";
 import type { Page } from "../../types";
 import Link from "next/link";
 import Image from "next/image";
+import { useAppContext } from "../providers/AppProvider";
+import { getRoleConfig } from "../../lib/rbac";
 
 export { type Page };
 
@@ -72,6 +74,13 @@ const ICONS: Record<Page, React.ReactNode> = {
       <path d="M9.5 3v3M14.5 3v3M9.5 18v3M14.5 18v3M3 9.5h3M3 14.5h3M18 9.5h3M18 14.5h3" />
     </>
   ),
+  enrollment: (
+    <>
+      <path d="M12 11c2.2 0 4-1.8 4-4s-1.8-4-4-4-4 1.8-4 4 1.8 4 4 4Z" />
+      <path d="M6 21v-2c0-2.2 2.7-4 6-4" />
+      <path d="M19 16v6M16 19h6" />
+    </>
+  ),
 };
 
 function NavIcon({ id, active }: { id: Page; active: boolean }) {
@@ -108,8 +117,12 @@ export default function Sidebar({
   alertCount = 0,
   visitorCount = 0,
 }: Props) {
-  const NAV: NavItem[] = [
+  const { user } = useAppContext();
+  const roleConfig = getRoleConfig(user?.role);
+
+  const ALL_NAV: NavItem[] = [
     { id: "dashboard", label: "Dashboard" },
+    { id: "enrollment", label: "Enrollment" },
     { id: "gates", label: "Gates & Readers" },
     { id: "logs", label: "Access Logs" },
     { id: "visitors", label: "Visitors", badge: visitorCount > 0 ? visitorCount : undefined },
@@ -118,6 +131,9 @@ export default function Sidebar({
     { id: "camera", label: "Live Camera" },
     { id: "devices", label: "Device Health" },
   ];
+
+  // Enforce Role-Based Access Control on navigation items
+  const NAV = ALL_NAV.filter((item) => roleConfig.allowedPages.includes(item.id));
 
   const width = expanded ? 260 : 80;
 
@@ -134,9 +150,14 @@ export default function Sidebar({
       >
         <Image src="/logo-mark.png" alt="NestGuard Logo Mark" width={553} height={587} className="h-10 w-10 object-contain shrink-0" priority />
         {expanded && (
-          <span className="font-semibold text-lg whitespace-nowrap tracking-tight font-display text-ng-text">
-            NestGuard
-          </span>
+          <div className="flex flex-col min-w-0">
+            <span className="font-semibold text-lg leading-tight whitespace-nowrap tracking-tight font-display text-ng-text">
+              NestGuard
+            </span>
+            <span suppressHydrationWarning className="text-[10px] font-mono tracking-widest text-ng-orange uppercase font-bold">
+              {roleConfig.badge}
+            </span>
+          </div>
         )}
       </Link>
 

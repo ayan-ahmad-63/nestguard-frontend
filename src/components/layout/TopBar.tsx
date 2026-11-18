@@ -1,9 +1,12 @@
 import { useState, useRef, useEffect } from "react";
 import type { Page, AlertItem } from "../../types";
 import FloatingThemeToggle from "../ui/FloatingThemeToggle";
+import { useAppContext } from "../providers/AppProvider";
+import { isPageAllowed } from "../../lib/rbac";
 
 const CRUMBS: Record<Page, string[]> = {
   dashboard: ["Console", "Dashboard"],
+  enrollment: ["Management", "Biometric Enrollment"],
   gates: ["Infrastructure", "Gates & Readers"],
   logs: ["Audit", "Access Logs"],
   visitors: ["Access", "Visitors Management"],
@@ -21,6 +24,25 @@ interface Props {
 }
 
 export default function TopBar({ page, onNavigate, onLogout, alerts = [] }: Props) {
+  const { user, logout } = useAppContext();
+  const userName = user?.name || "";
+  const userRole = user?.role
+    ? user.role.toUpperCase() === "ADMIN"
+      ? "Admin"
+      : user.role.toUpperCase() === "SECURITY"
+        ? "Security"
+        : "Warden"
+    : "";
+  const userEmail = user?.email || "";
+  const userInitials = user?.name
+    ? user.name
+      .split(" ")
+      .map(w => w[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase()
+    : "NG";
+
   const crumbs = CRUMBS[page];
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -51,27 +73,30 @@ export default function TopBar({ page, onNavigate, onLogout, alerts = [] }: Prop
   const unreadCount = unreadAlerts.length;
 
   const searchItems = [
+    { title: "Biometric Enrollment", cat: "Management", page: "enrollment" as Page },
     { title: "Main Gate", cat: "Gates", page: "gates" as Page },
     { title: "Service Entry", cat: "Gates", page: "gates" as Page },
-    { title: "Rahul Sharma (RS)", cat: "Student Log", page: "logs" as Page },
-    { title: "Suresh Kumar (SK)", cat: "High Risk Student", page: "analytics" as Page },
-    { title: "Block C Reader", cat: "Device", page: "devices" as Page },
+    { title: "Resident Access Log", cat: "Audit", page: "logs" as Page },
+    { title: "Student Risk & Curfew", cat: "Intelligence", page: "analytics" as Page },
+    { title: "Reader & Hardware", cat: "Device", page: "devices" as Page },
     { title: "Live Camera Feeds", cat: "Surveillance", page: "camera" as Page },
-  ].filter(item =>
-    searchQuery.trim() === ""
-      ? true
-      : item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+  ]
+    .filter((item) => isPageAllowed(item.page, user?.role))
+    .filter((item) =>
+      searchQuery.trim() === ""
+        ? true
+        : item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         item.cat.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
+    );
 
   return (
-    <header className="shrink-0 h-16 flex items-center px-6 gap-5 border-b border-ng-border relative z-30 select-none bg-ng-panel/50 backdrop-blur-3xl">
+    <header className="shrink-0 h-16 flex items-center px-6 gap-5 border-b border-ng-border relative z-30 select-none bg-ng-panel/50 backdrop-blur-3xl rounded-t-[1.5rem]">
       {/* Breadcrumbs */}
-      <div className="flex-1 flex items-center gap-2 text-xs font-display">
+      <div className="flex-1 min-w-0 flex items-center gap-2 text-xs font-display overflow-hidden">
         {crumbs.map((c, i) => (
-          <span key={i} className="flex items-center gap-2">
+          <span key={i} className="flex items-center gap-2 shrink-0">
             {i > 0 && <span className="text-ng-muted">/</span>}
-            <span className={i === crumbs.length - 1 ? "text-ng-text font-semibold" : "text-ng-muted font-medium"}>
+            <span className={i === crumbs.length - 1 ? "text-ng-text font-semibold truncate max-w-[140px] sm:max-w-none" : "text-ng-muted font-medium truncate max-w-[100px] sm:max-w-none"}>
               {c}
             </span>
           </span>
@@ -79,9 +104,9 @@ export default function TopBar({ page, onNavigate, onLogout, alerts = [] }: Prop
       </div>
 
       {/* Global Search Bar */}
-      <div className="relative" ref={searchRef}>
+      <div className="relative shrink-0" ref={searchRef}>
         <div
-          className={`flex items-center gap-2.5 px-3 py-2 rounded-xl border text-sm w-48 sm:w-64 cursor-text transition-all bg-ng-elevated ${searchOpen ? "border-ng-orange shadow-[0_0_12px_rgba(255,107,0,0.2)]" : "border-ng-border"}`}
+          className={`flex items-center gap-2.5 px-3 py-2 rounded-xl border text-sm w-36 sm:w-64 cursor-text transition-all bg-ng-elevated ${searchOpen ? "border-ng-orange shadow-[0_0_12px_rgba(255,107,0,0.2)]" : "border-ng-border"}`}
           onClick={() => setSearchOpen(true)}
         >
           <span className="text-ng-muted">⌕</span>
@@ -138,135 +163,140 @@ export default function TopBar({ page, onNavigate, onLogout, alerts = [] }: Prop
       {/* Theme Toggle inline */}
       <FloatingThemeToggle className="relative transition-transform hover:scale-105 cursor-pointer shrink-0 ml-1" />
 
-      {/* Notification Bell Dropdown */}
-      <div className="relative" ref={notifRef}>
-        <button
-          onClick={() => setNotifOpen(n => !n)}
-          className={`relative w-10 h-10 rounded-xl flex items-center justify-center cursor-pointer border transition-colors ${notifOpen ? "bg-ng-elevated border-ng-border text-ng-text" : "bg-transparent border-transparent text-ng-secondary hover:bg-white/[0.02]"}`}
-          aria-label="Notifications"
-        >
-          <span className="text-lg">🔔</span>
-          {unreadCount > 0 && (
-            <span className="absolute -top-1.5 -right-1.5 text-[9px] rounded-full w-4.5 h-4.5 flex items-center justify-center font-bold text-white shadow-md bg-red-500 font-mono ring-2 ring-ng-panel">
-              {unreadCount}
-            </span>
-          )}
-        </button>
-
-        {notifOpen && (
-          <div className="absolute right-0 top-[calc(100%+0.5rem)] mt-2 w-80 rounded-2xl border border-ng-border shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-150 bg-ng-panel">
-            <div className="px-5 py-4 border-b border-ng-border flex items-center justify-between bg-ng-elevated/30">
-              <div className="flex items-center gap-3">
-                <span className="font-semibold text-sm font-display text-ng-text">
-                  Security Alerts
+        {/* Notification Bell Dropdown (Warden and Admin only) */}
+        {isPageAllowed("alerts", user?.role) && (
+          <div className="relative" ref={notifRef}>
+            <button
+              onClick={() => setNotifOpen(n => !n)}
+              className={`relative w-10 h-10 rounded-xl flex items-center justify-center cursor-pointer border transition-colors ${notifOpen ? "bg-ng-elevated border-ng-border text-ng-text" : "bg-transparent border-transparent text-ng-secondary hover:bg-white/[0.02]"}`}
+              aria-label="Notifications"
+            >
+              <span className="text-lg">🔔</span>
+              {unreadCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 text-[9px] rounded-full w-4.5 h-4.5 flex items-center justify-center font-bold text-white shadow-md bg-red-500 font-mono ring-2 ring-ng-panel">
+                  {unreadCount}
                 </span>
-                <span className="text-[10px] px-2 py-0.5 rounded-md font-mono font-bold bg-red-500/10 text-red-500 border border-red-500/20">
-                  {unreadCount} Unresolved
-                </span>
-              </div>
-              {onNavigate && (
-                <button
-                  onClick={() => {
-                    onNavigate("alerts");
-                    setNotifOpen(false);
-                  }}
-                  className="text-[11px] hover:underline cursor-pointer text-ng-orange font-mono bg-transparent border-none"
-                >
-                  View All →
-                </button>
               )}
-            </div>
+            </button>
 
-            <div className="max-h-72 overflow-y-auto divide-y divide-ng-border">
-              {unreadAlerts.slice(0, 4).map(alert => (
-                <div
-                  key={alert.id}
-                  onClick={() => {
-                    if (onNavigate) onNavigate("alerts");
-                    setNotifOpen(false);
-                  }}
-                  className="p-4 cursor-pointer transition-colors hover:bg-white/[0.02]"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-md border ${alert.sev === "critical" ? "bg-red-500/10 text-red-500 border-red-500/20" : "bg-amber-500/10 text-amber-500 border-amber-500/20"}`}>
-                      {alert.sev.toUpperCase()}
-                    </span>
-                    <span className="text-[10px] font-mono text-ng-muted">
-                      {alert.time}
-                    </span>
-                  </div>
-                  <p className="text-sm font-medium m-0 truncate font-body text-ng-text mb-1">
-                    {alert.title}
-                  </p>
-                  <p className="text-[11px] m-0 truncate font-mono text-ng-secondary">
-                    {alert.gate} · {alert.user}
-                  </p>
+                    {notifOpen && (
+            <div className="absolute right-0 top-[calc(100%+0.5rem)] mt-2 w-80 rounded-2xl border border-ng-border shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-150 bg-ng-panel">
+              <div className="px-5 py-4 border-b border-ng-border flex items-center justify-between bg-ng-elevated/30">
+                <div className="flex items-center gap-3">
+                  <span className="font-semibold text-sm font-display text-ng-text">
+                    Security Alerts
+                  </span>
+                  <span className="text-[10px] px-2 py-0.5 rounded-md font-mono font-bold bg-red-500/10 text-red-500 border border-red-500/20">
+                    {unreadCount} Unresolved
+                  </span>
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Admin Profile Dropdown */}
-      <div className="relative" ref={userRef}>
-        <div
-          className="flex items-center gap-3 cursor-pointer p-1.5 rounded-xl transition-colors border border-transparent hover:bg-ng-elevated hover:border-ng-border"
-          onClick={() => setUserMenuOpen(u => !u)}
-        >
-          <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-md bg-ng-orange font-display">
-            AW
-          </div>
-          <div className="hidden sm:block text-left leading-tight pr-1">
-            <div className="text-sm font-semibold font-display text-ng-text mb-0.5">
-              A. Warden
-            </div>
-            <div className="text-[10px] font-mono text-ng-muted">
-              Hostel Admin
-            </div>
-          </div>
-        </div>
-
-        {userMenuOpen && (
-          <div className="absolute right-0 top-[calc(100%+0.5rem)] mt-2 w-56 rounded-2xl border border-ng-border p-2 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-150 bg-ng-panel">
-            <div className="px-4 py-3 border-b border-ng-border bg-ng-elevated/30 rounded-t-xl mb-1">
-              <div className="text-sm font-semibold font-display text-ng-text mb-0.5">
-                Chief Warden
+                {onNavigate && (
+                  <button
+                    onClick={() => {
+                      onNavigate("alerts");
+                      setNotifOpen(false);
+                    }}
+                    className="text-[11px] hover:underline cursor-pointer text-ng-orange font-mono bg-transparent border-none"
+                  >
+                    View All →
+                  </button>
+                )}
               </div>
-              <div className="text-xs truncate font-mono text-ng-muted">
-                warden@nestguard.in
+
+              <div className="max-h-72 overflow-y-auto divide-y divide-ng-border">
+                {unreadAlerts.slice(0, 4).map(alert => (
+                  <div
+                    key={alert.id}
+                    onClick={() => {
+                      if (onNavigate) onNavigate("alerts");
+                      setNotifOpen(false);
+                    }}
+                    className="p-4 cursor-pointer transition-colors hover:bg-white/[0.02]"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-md border ${alert.sev === "critical" ? "bg-red-500/10 text-red-500 border-red-500/20" : "bg-amber-500/10 text-amber-500 border-amber-500/20"}`}>
+                        {alert.sev.toUpperCase()}
+                      </span>
+                      <span className="text-[10px] font-mono text-ng-muted">
+                        {alert.time}
+                      </span>
+                    </div>
+                    <p className="text-sm font-medium m-0 truncate font-body text-ng-text mb-1">
+                      {alert.title}
+                    </p>
+                    <p className="text-[11px] m-0 truncate font-mono text-ng-secondary">
+                      {alert.gate} · {alert.user}
+                    </p>
+                  </div>
+                ))}
               </div>
             </div>
-            <div className="py-1 flex flex-col gap-1">
-              <a
-                href={
-                  process.env.NEXT_PUBLIC_MARKETING_URL?.replace(/\/$/, "") ||
-                  (process.env.NODE_ENV === "development"
-                    ? "http://localhost:3001"
-                    : "https://nestguard.live")
-                }
-                className="w-full text-left px-4 py-2 rounded-xl text-xs cursor-pointer transition-colors flex items-center gap-2.5 text-ng-secondary hover:text-ng-text font-display font-medium hover:bg-white/5 border border-transparent no-underline"
-              >
-                <span className="text-sm">↗</span>
-                <span>Visit nestguard.live</span>
-              </a>
-              {onLogout && (
-                <button
-                  onClick={() => {
-                    document.cookie = "ng_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-                    setUserMenuOpen(false);
-                    onLogout();
-                  }}
-                  className="w-full text-left px-4 py-2.5 rounded-xl text-sm cursor-pointer transition-colors flex items-center gap-3 text-red-500 font-display font-medium hover:bg-red-500/10 hover:shadow-inner border border-transparent hover:border-red-500/20"
-                >
-                  <span className="text-lg">⎋</span>
-                  <span>Sign Out</span>
-                </button>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-    </header>
-  );
+          )}
+                </div>
+      )}
+
+                {/* Admin Profile Dropdown */}
+                <div className="relative" ref={userRef}>
+                  <div
+                    className="flex items-center gap-3 cursor-pointer p-1.5 rounded-xl transition-colors border border-transparent hover:bg-ng-elevated hover:border-ng-border"
+                    onClick={() => setUserMenuOpen(u => !u)}
+                  >
+                    <div suppressHydrationWarning className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-md bg-ng-orange font-display">
+                      {userInitials}
+                    </div>
+                    <div className="hidden sm:block text-left leading-tight pr-1">
+                      <div suppressHydrationWarning className="text-sm font-semibold font-display text-ng-text mb-0.5">
+                        {userName}
+                      </div>
+                      <div suppressHydrationWarning className="text-[10px] font-mono text-ng-muted">
+                        {userRole}
+                      </div>
+                    </div>
+                  </div>
+
+                  {userMenuOpen && (
+                    <div className="absolute right-0 top-[calc(100%+0.5rem)] mt-2 w-56 rounded-2xl border border-ng-border p-2 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-150 bg-ng-panel">
+                      <div className="px-4 py-3 border-b border-ng-border bg-ng-elevated/30 rounded-t-xl mb-1">
+                        <div className="text-sm font-semibold font-display text-ng-text mb-0.5">
+                          {userName}
+                        </div>
+                        <div className="text-xs truncate font-mono text-ng-muted">
+                          {userEmail}
+                        </div>
+                      </div>
+                      <div className="py-1 flex flex-col gap-1">
+                        <a
+                          href={
+                            process.env.NEXT_PUBLIC_MARKETING_URL?.replace(/\/$/, "") ||
+                            "https://nestguard.live"
+                          }
+                          className="w-full text-left px-4 py-2 rounded-xl text-xs cursor-pointer transition-colors flex items-center gap-2.5 text-ng-secondary hover:text-ng-text font-display font-medium hover:bg-white/5 border border-transparent no-underline"
+                        >
+                          <span className="text-sm">↗</span>
+                          <span>Visit nestguard.live</span>
+                        </a>
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setUserMenuOpen(false);
+                            if (logout) {
+                              logout();
+                            } else if (onLogout) {
+                              onLogout();
+                            } else {
+                              window.location.replace("/login?logout=true");
+                            }
+                          }}
+                          className="w-full text-left px-4 py-2.5 rounded-xl text-sm cursor-pointer transition-colors flex items-center gap-3 text-red-500 font-display font-medium hover:bg-red-500/10 hover:shadow-inner border border-transparent hover:border-red-500/20"
+                        >
+                          <span className="text-lg">⎋</span>
+                          <span>Sign Out</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </header>
+            );
 }

@@ -1,5 +1,8 @@
 "use client";
 import Dashboard from "@/views/Dashboard";
+import { useRouter } from "next/navigation";
+
 export default function Page() {
-  return <Dashboard onNavigate={() => {}} />;
+  const router = useRouter();
+  return <Dashboard onNavigate={(p) => router.push(`/${p}`)} />;
 }

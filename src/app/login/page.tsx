@@ -8,10 +8,7 @@ import { useAppContext } from "@/components/providers/AppProvider";
  * "/" in nestguard-frontend redirects to /dashboard or /login.
  * The correct destination is nestguard.live.
  */
-const defaultMarketingUrl =
-  process.env.NODE_ENV === "development"
-    ? "http://localhost:3001"
-    : "https://nestguard.live";
+const defaultMarketingUrl = "https://nestguard.live";
 
 const MARKETING_SITE_URL =
   process.env.NEXT_PUBLIC_MARKETING_URL?.replace(/\/$/, "") ||
@@ -25,7 +22,8 @@ export default function Page() {
     <Login
       onLogin={() => {
         setAuthed(true);
-        router.push("/dashboard");
+        const lastRoute = (typeof window !== "undefined" && localStorage.getItem("ng_last_route")) || "/dashboard";
+        router.push(lastRoute);
       }}
       onBack={() => {
         window.location.href = MARKETING_SITE_URL;

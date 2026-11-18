@@ -11,6 +11,14 @@ import { redirect } from "next/navigation";
  */
 export default async function Page() {
   const cookieStore = await cookies();
-  const hasSession = cookieStore.has("ng_session");
-  redirect(hasSession ? "/dashboard" : "/login");
+  const sessionVal = cookieStore.get("ng_session")?.value;
+  const tokenVal = cookieStore.get("ng_token")?.value;
+  const lastRouteVal = cookieStore.get("ng_last_route")?.value;
+
+  const isAuthenticated = Boolean(
+    sessionVal === "true" || (tokenVal && tokenVal.trim().length > 10)
+  );
+
+  const destination = isAuthenticated ? (lastRouteVal || "/dashboard") : "/login";
+  redirect(destination);
 }

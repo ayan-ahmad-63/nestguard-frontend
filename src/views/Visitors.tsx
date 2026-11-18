@@ -1,16 +1,17 @@
 import { useState } from "react";
 import Modal from "../components/ui/Modal";
 import type { Visitor, VisitorStatus } from "../types";
+import { useAppContext } from "../components/providers/AppProvider";
 
-const INITIAL_VISITORS: Visitor[] = [
-  { id: 1, name: "Ravi Teja", phone: "+92 300 1234567", host: "Rahul Sharma", purpose: "Study Group / Project Discussion", since: "09:25", notif: null, status: "pending" },
-  { id: 2, name: "Anjali Singh", phone: "+92 321 9876543", host: "Priya Kapoor", purpose: "Family Visit", since: "09:10", notif: "Telegram", status: "approved" },
-  { id: 3, name: "Kumar Patel", phone: "+92 333 4567890", host: "Dev Mishra", purpose: "Package Delivery", since: "08:55", notif: "Email", status: "checked-in" },
-  { id: 4, name: "Sonal Mehta", phone: "+92 312 8765432", host: "Nisha Reddy", purpose: "Interview Preparation", since: "08:30", notif: null, status: "rejected" },
-  { id: 5, name: "Tariq Hassan", phone: "+92 345 6789012", host: "Arun Mehta", purpose: "Library Book Exchange", since: "08:15", notif: null, status: "pending" },
-];
+const INITIAL_VISITORS: Visitor[] = [];
 
 export default function Visitors() {
+  const { user } = useAppContext();
+  const role = (user?.role || "warden").toLowerCase();
+  const canApprove = role === "warden" || role === "admin";
+  const canCreate = role === "security" || role === "admin";
+  const canCheckIn = role === "security" || role === "admin";
+
   const [visitors, setVisitors] = useState(INITIAL_VISITORS);
   const [filter, setFilter] = useState<string>("All");
   const [newModalOpen, setNewModalOpen] = useState(false);
@@ -70,7 +71,7 @@ export default function Visitors() {
       default: return "text-ng-muted bg-ng-elevated border-ng-border";
     }
   };
-  
+
   const getDotColor = (status: string) => {
     switch (status) {
       case "pending": return "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]";
@@ -93,9 +94,8 @@ export default function Visitors() {
               <button
                 key={s}
                 onClick={() => setFilter(s)}
-                className={`px-4 py-2.5 rounded-xl border flex items-center gap-2.5 cursor-pointer transition-all text-xs font-display font-medium ${
-                  isSelected ? "bg-ng-orange/10 border-ng-orange/30 shadow-[0_0_15px_rgba(255,107,0,0.1)]" : "bg-ng-panel border-ng-border hover:bg-ng-elevated"
-                }`}
+                className={`px-4 py-2.5 rounded-xl border flex items-center gap-2.5 cursor-pointer transition-all text-xs font-display font-medium ${isSelected ? "bg-ng-orange/10 border-ng-orange/30 shadow-[0_0_15px_rgba(255,107,0,0.1)]" : "bg-ng-panel border-ng-border hover:bg-ng-elevated"
+                  }`}
               >
                 <span className={`w-2 h-2 rounded-full shrink-0 ${getDotColor(s)}`} />
                 <span className={`capitalize ${isSelected ? "text-ng-text" : "text-ng-secondary"}`}>
@@ -109,12 +109,14 @@ export default function Visitors() {
           })}
         </div>
 
-        <button
-          onClick={() => setNewModalOpen(true)}
-          className="px-5 py-3 rounded-xl text-xs font-display font-semibold text-white border-none cursor-pointer transition-all flex items-center gap-2 bg-ng-orange shadow-[0_0_15px_rgba(255,107,0,0.3)] hover:brightness-110"
-        >
-          <span className="text-sm">+</span> Register New Visitor
-        </button>
+        {canCreate && (
+          <button
+            onClick={() => setNewModalOpen(true)}
+            className="px-5 py-3 rounded-xl text-xs font-display font-semibold text-white border-none cursor-pointer transition-all flex items-center gap-2 bg-ng-orange shadow-[0_0_15px_rgba(255,107,0,0.3)] hover:brightness-110"
+          >
+            <span className="text-sm">+</span> Register New Visitor
+          </button>
+        )}
       </div>
 
       {/* Visitors List Card */}
@@ -186,27 +188,43 @@ export default function Visitors() {
                     <div className="flex items-center gap-2">
                       {v.status === "pending" && (
                         <>
-                          <button
-                            onClick={() => approve(v.id)}
-                            className="px-3 py-1.5 rounded-lg text-xs font-mono font-semibold border cursor-pointer transition-colors bg-green-500/10 border-green-500/30 text-green-500 hover:bg-green-500/20"
-                          >
-                            Approve
-                          </button>
-                          <button
-                            onClick={() => reject(v.id)}
-                            className="px-3 py-1.5 rounded-lg text-xs font-mono font-semibold border cursor-pointer transition-colors bg-red-500/10 border-red-500/30 text-red-500 hover:bg-red-500/20"
-                          >
-                            Reject
-                          </button>
+                          {canApprove ? (
+                            <>
+                              <button
+                                onClick={() => approve(v.id)}
+                                className="px-3 py-1.5 rounded-lg text-xs font-mono font-semibold border cursor-pointer transition-colors bg-green-500/10 border-green-500/30 text-green-500 hover:bg-green-500/20"
+                              >
+                                Approve
+                              </button>
+                              <button
+                                onClick={() => reject(v.id)}
+                                className="px-3 py-1.5 rounded-lg text-xs font-mono font-semibold border cursor-pointer transition-colors bg-red-500/10 border-red-500/30 text-red-500 hover:bg-red-500/20"
+                              >
+                                Reject
+                              </button>
+                            </>
+                          ) : (
+                            <span className="text-[10px] font-mono font-bold text-amber-500 bg-amber-500/10 px-2.5 py-1 rounded border border-amber-500/20">
+                              Awaiting Warden Review
+                            </span>
+                          )}
                         </>
                       )}
                       {v.status === "approved" && (
-                        <button
-                          onClick={() => checkIn(v.id)}
-                          className="px-3 py-1.5 rounded-lg text-xs font-mono font-semibold border cursor-pointer transition-colors bg-blue-500/10 border-blue-500/30 text-blue-500 hover:bg-blue-500/20"
-                        >
-                          Mark Check-In
-                        </button>
+                        <>
+                          {canCheckIn ? (
+                            <button
+                              onClick={() => checkIn(v.id)}
+                              className="px-3 py-1.5 rounded-lg text-xs font-mono font-semibold border cursor-pointer transition-colors bg-blue-500/10 border-blue-500/30 text-blue-500 hover:bg-blue-500/20"
+                            >
+                              Mark Check-In
+                            </button>
+                          ) : (
+                            <span className="text-[10px] font-mono font-bold text-green-500 bg-green-500/10 px-2.5 py-1 rounded border border-green-500/20">
+                              Approved by Warden
+                            </span>
+                          )}
+                        </>
                       )}
                       {v.status === "checked-in" && (
                         <span className="text-[10px] font-mono font-bold text-green-500 uppercase tracking-widest">

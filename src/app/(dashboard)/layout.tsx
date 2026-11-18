@@ -8,6 +8,7 @@ import type { Page } from "@/types";
 
 const PAGE_TITLES: Record<string, { title: string; subtitle: string; page: Page }> = {
   "/dashboard": { title: "Operations Console", subtitle: "Real-time security telemetry & access feed", page: "dashboard" },
+  "/enrollment": { title: "Biometric Resident & Personnel Enrollment", subtitle: "ZKTeco Live20R SilkID biometric registration & resident records", page: "enrollment" },
   "/gates": { title: "Gate & Device Controllers", subtitle: "Turnstile barriers and optical biometric readers", page: "gates" },
   "/logs": { title: "Access Audit Log", subtitle: "Immutable cryptographic entry & egress timestamps", page: "logs" },
   "/visitors": { title: "Visitor Pass Management", subtitle: "Host authorization and entry pass approval", page: "visitors" },
@@ -18,10 +19,20 @@ const PAGE_TITLES: Record<string, { title: string; subtitle: string; page: Page 
 };
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { alerts, unreadAlertCount, setAuthed, pendingVisitorCount } = useAppContext();
+  const { alerts, unreadAlertCount, setAuthed, pendingVisitorCount, logout } = useAppContext();
   const pathname = usePathname() || "/dashboard";
   const [expanded, setExpanded] = useState(true);
   const router = useRouter();
+
+  // Persist current route so app returns to where user left off
+  React.useEffect(() => {
+    if (pathname && pathname !== "/login") {
+      try {
+        localStorage.setItem("ng_last_route", pathname);
+        document.cookie = `ng_last_route=${pathname}; path=/; max-age=604800; SameSite=Lax`;
+      } catch {}
+    }
+  }, [pathname]);
 
   const routeInfo = PAGE_TITLES[pathname] || PAGE_TITLES["/dashboard"];
   const page: Page = routeInfo.page;
@@ -30,9 +41,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <div className="h-screen p-3 sm:p-5 box-border select-none bg-ng-bg font-body text-ng-text relative overflow-hidden flex">
       {/* Ambient background glows */}
       <div className="absolute top-[-20%] left-[-10%] w-[60vw] h-[600px] rounded-full pointer-events-none opacity-20 blur-[120px] z-0"
-           style={{ background: "radial-gradient(ellipse at center, var(--color-ng-orange), transparent 70%)" }} />
+        style={{ background: "radial-gradient(ellipse at center, var(--color-ng-orange), transparent 70%)" }} />
       <div className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[600px] rounded-full pointer-events-none opacity-10 blur-[100px] z-0"
-           style={{ background: "radial-gradient(ellipse at center, var(--color-ng-blue), transparent 70%)" }} />
+        style={{ background: "radial-gradient(ellipse at center, var(--color-ng-blue), transparent 70%)" }} />
 
       <div className="h-full flex w-full rounded-[2rem] border border-ng-border overflow-hidden shadow-2xl bg-ng-panel/50 backdrop-blur-3xl relative z-10">
         <Sidebar
@@ -43,17 +54,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           visitorCount={pendingVisitorCount}
         />
         <div className="flex-1 min-w-0 p-3 sm:p-4 flex flex-col">
-          <div className="h-full flex flex-col rounded-[1.5rem] border border-ng-border overflow-hidden relative shadow-inner bg-ng-bg">
-            <TopBar 
-              page={page} 
-              onNavigate={(p) => router.push(`/${p}`)} 
-              onLogout={() => {
-                setAuthed(false);
-                router.push("/");
-              }} 
-              alerts={alerts} 
+          <div className="h-full flex flex-col rounded-[1.5rem] border border-ng-border overflow-hidden relative shadow-inner bg-ng-bg isolate">
+            <TopBar
+              page={page}
+              onNavigate={(p) => router.push(`/${p}`)}
+              onLogout={logout}
+              alerts={alerts}
             />
-            <main className="flex-1 overflow-y-auto p-6 sm:p-8">
+            <main className="flex-1 overflow-y-auto p-6 sm:p-8 rounded-b-[1.5rem]">
               <div className="mb-8 flex flex-col gap-1.5">
                 <h1 className="text-2xl sm:text-3xl font-bold m-0 tracking-tight font-display text-ng-text">
                   {routeInfo.title}

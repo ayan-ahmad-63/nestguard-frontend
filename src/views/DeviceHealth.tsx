@@ -3,16 +3,7 @@ import StatusPill from "../components/ui/StatusPill";
 import type { DeviceItem, StatusType } from "../types";
 
 const INITIAL_DEVICES: DeviceItem[] = [
-  { id: "DEV-001", name: "Main Gate Biometric Reader", type: "Fingerprint", battery: 92, signal: 80, lastSeen: "09:41:02", status: "safe" },
-  { id: "DEV-002", name: "Block A Primary Scanner", type: "Fingerprint", battery: 67, signal: 55, lastSeen: "09:38:17", status: "attention" },
-  { id: "DEV-003", name: "Block A RFID Access Pad", type: "Card", battery: 88, signal: 72, lastSeen: "09:35:44", status: "safe" },
-  { id: "DEV-004", name: "Block B Biometric Scanner", type: "Fingerprint", battery: 88, signal: 72, lastSeen: "09:35:44", status: "safe" },
-  { id: "DEV-005", name: "Block C Optical Unit", type: "Fingerprint", battery: 74, signal: 40, lastSeen: "08:54:18", status: "attention" },
-  { id: "DEV-006", name: "Service Entry Heavy-Duty Reader", type: "Fingerprint", battery: 23, signal: 28, lastSeen: "09:27:55", status: "critical" },
-  { id: "DEV-007", name: "Rear Exit Turnstile Scanner", type: "Card", battery: 81, signal: 77, lastSeen: "09:15:40", status: "safe" },
-  { id: "DEV-008", name: "Main Gate Bullet Camera 4K", type: "Camera", battery: 100, signal: 90, lastSeen: "09:41:10", status: "safe" },
-  { id: "DEV-009", name: "Block A Vestibule Dome IP", type: "Camera", battery: 100, signal: 85, lastSeen: "09:40:55", status: "safe" },
-  { id: "DEV-010", name: "Service Entry Logistics PTZ", type: "Camera", battery: 100, signal: 55, lastSeen: "09:27:50", status: "attention" },
+  { id: "DEV-001", name: "Main Gate Live20R SilkID Biometric Scanner (Entry & Exit)", type: "Fingerprint", battery: 100, signal: 98, lastSeen: "Just now", status: "safe" },
 ];
 
 function TelemetryBar({ value }: { value: number }) {
@@ -41,7 +32,7 @@ export default function DeviceHealth() {
 
     setTimeout(() => {
       setRunningDiagnostic(false);
-      setDiagResult("✓ Full hardware poll complete: 10/10 responded. 1 low battery, 1 weak wireless signal detected.");
+      setDiagResult("✓ Full hardware poll complete: Live20R biometric scanner responded nominal (100% battery, 98% signal).");
       // Refresh last seen
       const now = new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false });
       setDevices(prev => prev.map(d => ({ ...d, lastSeen: now })));
@@ -66,7 +57,7 @@ export default function DeviceHealth() {
       {/* Top Filter and Actions Bar */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center gap-1.5 p-1 rounded-xl bg-ng-panel border border-ng-border">
-          {["All", "Fingerprint", "Card", "Camera"].map(t => (
+          {["All", "Fingerprint"].map(t => (
             <button
               key={t}
               onClick={() => setTypeFilter(t)}
