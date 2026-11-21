@@ -279,13 +279,10 @@ export default function Login({ onLogin, onBack }: Props) {
     setSelectedRole(role);
     if (role === "warden") {
       setEmail("warden@nestguard.in");
-      setPassword("Warden@1234");
     } else if (role === "admin") {
       setEmail("admin@nestguard.in");
-      setPassword("Admin@1234");
     } else {
       setEmail("security@nestguard.in");
-      setPassword("Security@1234");
     }
     setError(null);
   };
@@ -384,7 +381,7 @@ export default function Login({ onLogin, onBack }: Props) {
 
             {/* Quick Credential Pre-fill Badges */}
             <div className="flex items-center justify-between gap-2 pt-1 text-[11px]">
-              <span className="text-ng-muted font-mono">Demo presets:</span>
+              <span className="text-ng-muted font-mono">Quick fill email:</span>
               <div className="flex gap-1.5">
                 <button
                   type="button"
