@@ -20,7 +20,7 @@ const PAGE_TITLES: Record<string, { title: string; subtitle: string; page: Page 
 };
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { alerts, unreadAlertCount, setAuthed, pendingVisitorCount, logout } = useAppContext();
+  const { alerts, unreadAlertCount, pendingVisitorCount, logout } = useAppContext();
   const pathname = usePathname() || "/dashboard";
   const [expanded, setExpanded] = useState(true);
   const router = useRouter();

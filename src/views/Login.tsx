@@ -20,7 +20,6 @@ export default function Login({ onLogin, onBack }: Props) {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [focus, setFocus] = useState<string | null>(null);
-  const [scanning, setScanning] = useState(false);
   const [selectedRole, setSelectedRole] = useState<"warden" | "admin" | "security">("warden");
   const [scanningRole, setScanningRole] = useState<"warden" | "admin" | "security" | null>(null);
   const [loading, setLoading] = useState(false);
@@ -161,13 +160,6 @@ export default function Login({ onLogin, onBack }: Props) {
       if (thumbPollRef.current) clearInterval(thumbPollRef.current);
     };
   }, []);
-
-  const getEffectiveRole = (targetRole?: "warden" | "admin" | "security"): "warden" | "admin" | "security" => {
-    if (targetRole) return targetRole;
-    if (email.toLowerCase().includes("admin")) return "admin";
-    if (email.toLowerCase().includes("security")) return "security";
-    return selectedRole;
-  };
 
   const handleThumbLoginSuccess = useCallback((r: any) => {
     if (thumbPollRef.current) {
@@ -450,26 +442,11 @@ export default function Login({ onLogin, onBack }: Props) {
             <button
               type="button"
               onClick={() => handleBiometricScan()}
-              disabled={scanning || loading}
+              disabled={loading}
               className="w-full py-3 rounded-xl font-display font-medium text-sm border cursor-pointer transition-all flex items-center justify-center gap-2 bg-ng-elevated border-ng-border text-ng-text hover:bg-white/[0.04]"
-              style={{
-                borderColor: scanning ? "var(--color-ng-green)" : "",
-                color: scanning ? "var(--color-ng-green)" : "",
-              }}
             >
-              {scanning ? (
-                <>
-                  <span className="w-2 h-2 rounded-full animate-ping bg-green-500" />
-                  <span className="font-mono text-xs">
-                    Live20R Armed · Touch with ANY Enrolled Staff Finger…
-                  </span>
-                </>
-              ) : (
-                <>
-                  <span>👆</span>
-                  <span>Scan Fingerprint to Login (Any Staff)</span>
-                </>
-              )}
+              <span>👆</span>
+              <span>Scan Fingerprint to Login (Any Staff)</span>
             </button>
 
 

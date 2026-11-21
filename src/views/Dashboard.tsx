@@ -19,8 +19,6 @@ export default function Dashboard({ onNavigate }: Props) {
   const { liveLogs, wsConnected, alerts, user } = useAppContext();
   const role = (user?.role || "").toLowerCase();
   const isSecurity = role === "security";
-  const isWarden = role === "warden";
-  const isAdmin = role === "admin";
   const [selectedGate, setSelectedGate] = useState<string | null>(null);
   const [visitors, setVisitors] = useState<any[]>([]);
 

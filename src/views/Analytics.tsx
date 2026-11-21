@@ -1,9 +1,8 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useAppContext } from "../components/providers/AppProvider";
 
 import { apiFetch } from "../lib/api";
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
 interface ResidentRecord {
   _id: string;
@@ -39,7 +38,7 @@ export default function Analytics() {
   const [residents, setResidents] = useState<ResidentRecord[]>([]);
   const [logs, setLogs] = useState<LogItem[]>([]);
   const [alerts, setAlerts] = useState<AlertItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
 
   // Use real-time synchronized context data whenever available for zero-latency rendering
   const effectiveLogs = liveLogs.length > 0 ? liveLogs : logs;

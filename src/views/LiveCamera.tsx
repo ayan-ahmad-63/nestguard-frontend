@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import Modal from "../components/ui/Modal";
-import type { StatusType, CameraFeed } from "../types";
+import type { CameraFeed } from "../types";
 
 // No physical live cameras currently connected, operational, or bought
 const FEEDS: CameraFeed[] = [];

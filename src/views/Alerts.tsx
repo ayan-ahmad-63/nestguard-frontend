@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { AlertItem, AlertSeverity } from "../types";
+import type { AlertSeverity } from "../types";
 import { useAppContext } from "../components/providers/AppProvider";
 
 const SEV_LABEL: Record<AlertSeverity, string> = {

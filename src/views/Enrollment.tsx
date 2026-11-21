@@ -4,7 +4,6 @@ import Avatar from "../components/ui/Avatar";
 import { useAppContext } from "../components/providers/AppProvider";
 
 import { apiFetch } from "../lib/api";
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
 interface ResidentRecord {
   _id: string;
@@ -75,7 +74,7 @@ export default function Enrollment() {
   const [editName, setEditName] = useState("");
   const [editRollNo, setEditRollNo] = useState("");
   const [editCategory, setEditCategory] = useState<"STUDENT" | "WORKER" | "STAFF">("STUDENT");
-  const [editStaffRole, setEditStaffRole] = useState<"warden" | "admin" | "security">("warden");
+  const [, setEditStaffRole] = useState<"warden" | "admin" | "security">("warden");
   const [editRoom, setEditRoom] = useState("");
   const [editDept, setEditDept] = useState("");
   const [editGuardianName, setEditGuardianName] = useState("");
@@ -468,14 +467,6 @@ export default function Enrollment() {
       alert("Failed to communicate with ZKTeco gateway: " + err.message);
       setUpdateFpStep("IDLE");
     }
-  };
-
-  const disarmUpdateFpScanner = async () => {
-    if (updateFpPollRef.current) clearInterval(updateFpPollRef.current);
-    try {
-      await apiFetch(`/api/v1/hardware/zkteco/disarm-update-fp`, { method: "POST" });
-    } catch {}
-    setUpdateFpStep("IDLE");
   };
 
   const handleDelete = async (id: string, name: string) => {
