@@ -4,7 +4,7 @@ import type { AlertItem, AccessLog } from "@/types";
 import type { Socket } from "socket.io-client";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
-const WS_URL = process.env.NEXT_PUBLIC_WS_URL || "http://localhost:3000";
+const WS_URL = process.env.NEXT_PUBLIC_WS_URL || API_URL;
 
 const INITIAL_GLOBAL_ALERTS: AlertItem[] = [];
 

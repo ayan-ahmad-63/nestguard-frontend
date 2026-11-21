@@ -6,7 +6,7 @@ import Modal from "../components/ui/Modal";
 import { useAppContext } from "../components/providers/AppProvider";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
-const WS_URL = process.env.NEXT_PUBLIC_WS_URL || "http://localhost:3000";
+const WS_URL = process.env.NEXT_PUBLIC_WS_URL || API_URL;
 const SIMULATE = process.env.NEXT_PUBLIC_ENABLE_SIMULATE === "true"; // dev only; the API must also allow it
 
 interface Props {
