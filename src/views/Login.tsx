@@ -20,7 +20,6 @@ export default function Login({ onLogin, onBack }: Props) {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [focus, setFocus] = useState<string | null>(null);
-  const [selectedRole, setSelectedRole] = useState<"warden" | "admin" | "security">("warden");
   const [scanningRole, setScanningRole] = useState<"warden" | "admin" | "security" | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -275,18 +274,6 @@ export default function Login({ onLogin, onBack }: Props) {
     }
   };
 
-  const fillDemo = (role: "warden" | "admin" | "security") => {
-    setSelectedRole(role);
-    if (role === "warden") {
-      setEmail("warden@nestguard.in");
-    } else if (role === "admin") {
-      setEmail("admin@nestguard.in");
-    } else {
-      setEmail("security@nestguard.in");
-    }
-    setError(null);
-  };
-
     return (
       <div className="min-h-screen flex items-center justify-center p-5 select-none relative overflow-hidden bg-ng-bg text-ng-text font-body">
         {/* ── Massive Ambient Orbs ──────────────────────── */}
@@ -376,46 +363,6 @@ export default function Login({ onLogin, onBack }: Props) {
                     borderColor: focus === "password" ? "var(--color-ng-orange)" : "var(--color-ng-border)",
                   }}
                 />
-              </div>
-            </div>
-
-            {/* Quick Credential Pre-fill Badges */}
-            <div className="flex items-center justify-between gap-2 pt-1 text-[11px]">
-              <span className="text-ng-muted font-mono">Quick fill email:</span>
-              <div className="flex gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => fillDemo("warden")}
-                  className={`px-2.5 py-1 rounded-lg border text-[10px] font-mono cursor-pointer transition-colors ${
-                    selectedRole === "warden"
-                      ? "border-ng-orange bg-ng-orange/20 text-ng-orange font-bold"
-                      : "border-ng-border bg-ng-elevated text-ng-secondary hover:text-ng-orange hover:border-ng-orange/50"
-                  }`}
-                >
-                  Warden
-                </button>
-                <button
-                  type="button"
-                  onClick={() => fillDemo("admin")}
-                  className={`px-2.5 py-1 rounded-lg border text-[10px] font-mono cursor-pointer transition-colors ${
-                    selectedRole === "admin"
-                      ? "border-ng-orange bg-ng-orange/20 text-ng-orange font-bold"
-                      : "border-ng-border bg-ng-elevated text-ng-secondary hover:text-ng-orange hover:border-ng-orange/50"
-                  }`}
-                >
-                  Admin
-                </button>
-                <button
-                  type="button"
-                  onClick={() => fillDemo("security")}
-                  className={`px-2.5 py-1 rounded-lg border text-[10px] font-mono cursor-pointer transition-colors ${
-                    selectedRole === "security"
-                      ? "border-ng-orange bg-ng-orange/20 text-ng-orange font-bold"
-                      : "border-ng-border bg-ng-elevated text-ng-secondary hover:text-ng-orange hover:border-ng-orange/50"
-                  }`}
-                >
-                  Security
-                </button>
               </div>
             </div>
 
