@@ -77,7 +77,7 @@ export default function LiveCamera() {
               <span className="text-amber-400 font-bold">0 Operational</span>
             </div>
             <div className="p-4 rounded-xl border border-ng-border bg-ng-elevated/40 flex flex-col gap-1">
-              <span className="text-[10px] text-ng-muted uppercase tracking-widest font-bold">Turnstile Readers</span>
+              <span className="text-[10px] text-ng-muted uppercase tracking-widest font-bold">Gate Readers</span>
               <span className="text-green-400 font-bold">Live20R Online</span>
             </div>
           </div>

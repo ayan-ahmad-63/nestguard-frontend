@@ -1,4 +1,5 @@
 import React from "react";
+import { isPhaseII } from "@/lib/phase";
 import type { Page } from "../../types";
 import Link from "next/link";
 import Image from "next/image";
@@ -179,6 +180,9 @@ export default function Sidebar({
                 <NavIcon id={id} active={isActive} />
               </span>
               {expanded && <span className="flex-1 truncate">{label}</span>}
+              {expanded && isPhaseII(id) && (
+                <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-ng-border text-ng-muted" title="Preview: not part of Phase-I">P2</span>
+              )}
               {expanded && badge !== undefined && (
                 <span
                   className={`text-[10px] font-mono px-2 py-0.5 rounded-full font-bold border ${id === "alerts" ? "bg-red-500/10 text-red-500 border-red-500/20" : "bg-amber-500/10 text-amber-500 border-amber-500/20"}`}

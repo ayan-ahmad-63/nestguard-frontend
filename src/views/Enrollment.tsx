@@ -3,6 +3,7 @@ import Modal from "../components/ui/Modal";
 import Avatar from "../components/ui/Avatar";
 import { useAppContext } from "../components/providers/AppProvider";
 
+import { apiFetch } from "../lib/api";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
 interface ResidentRecord {
@@ -94,7 +95,7 @@ export default function Enrollment() {
   const fetchResidents = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/api/v1/students`, { cache: "no-store" });
+      const res = await apiFetch(`/api/v1/students`, { cache: "no-store" });
       const json = await res.json();
       const list = json.data?.students || (Array.isArray(json.data) ? json.data : null) || json.message?.data?.students || [];
       if (Array.isArray(list)) {
@@ -155,7 +156,7 @@ export default function Enrollment() {
 
     try {
       // 1. Arm backend for physical finger touch
-      await fetch(`${API_URL}/api/v1/hardware/zkteco/arm-enroll`, {
+      await apiFetch(`/api/v1/hardware/zkteco/arm-enroll`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -166,7 +167,7 @@ export default function Enrollment() {
 
       pollTimerRef.current = setInterval(async () => {
         try {
-          const res = await fetch(`${API_URL}/api/v1/hardware/zkteco/enroll-status`, { cache: "no-store" });
+          const res = await apiFetch(`/api/v1/hardware/zkteco/enroll-status`, { cache: "no-store" });
           const json = await res.json();
 
           if (json.data?.lastResult && json.data.lastResult.success) {
@@ -200,7 +201,7 @@ export default function Enrollment() {
   const disarmScanner = async () => {
     if (pollTimerRef.current) clearInterval(pollTimerRef.current);
     try {
-      await fetch(`${API_URL}/api/v1/hardware/zkteco/disarm-enroll`, { method: "POST" });
+      await apiFetch(`/api/v1/hardware/zkteco/disarm-enroll`, { method: "POST" });
     } catch {}
     setScanStep("IDLE");
   };
@@ -210,8 +211,31 @@ export default function Enrollment() {
     if (!formName.trim() || !formRollNo.trim()) return;
 
     setSaving(true);
-    const defaultStaffSlot = staffRole === "admin" ? "FP-ADM-01" : staffRole === "security" ? "FP-SEC-01" : "FP-WRD-01";
-    const assignedSlot = capturedSlot || (formCategory === "STAFF" ? defaultStaffSlot : `FP-${String(residents.length + 1).padStart(3, "0")}`);
+    // Derive next FP slot from backend so we never assign an already-used ID
+    let assignedSlot = capturedSlot;
+    if (!assignedSlot) {
+      try {
+        const slotRes = await apiFetch(`/api/v1/hardware/zkteco/next-fp-slot?name=${encodeURIComponent(formName.trim())}`, { cache: "no-store" });
+        if (slotRes.ok) {
+          const slotJson = await slotRes.json();
+          assignedSlot = slotJson.data?.slot || slotJson.data?.fingerprintId || "";
+        }
+      } catch {}
+      // Ultimate fallback only if backend is unreachable
+      if (!assignedSlot) {
+        const code = formCategory === "STAFF"
+          ? (staffRole === "admin" ? "ADM" : staffRole === "security" ? "SEC" : "WRD")
+          : "USR";
+        const existingForRole = residents.filter(r =>
+          r.fingerprintId && r.fingerprintId.startsWith(`FP-${code}-`)
+        );
+        const maxNum = existingForRole.reduce((m, r) => {
+          const match = r.fingerprintId?.match(/-(\d+)$/);
+          return match ? Math.max(m, parseInt(match[1], 10)) : m;
+        }, 0);
+        assignedSlot = `FP-${code}-${String(maxNum + 1).padStart(2, "0")}`;
+      }
+    }
 
     const payload = {
       name: formName.trim(),
@@ -232,7 +256,7 @@ export default function Enrollment() {
     };
 
     try {
-      const res = await fetch(`${API_URL}/api/v1/students/enroll`, {
+      const res = await apiFetch(`/api/v1/students/enroll`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -332,7 +356,7 @@ export default function Enrollment() {
     };
 
     try {
-      const res = await fetch(`${API_URL}/api/v1/students/${editingResident._id}`, {
+      const res = await apiFetch(`/api/v1/students/${editingResident._id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -384,7 +408,7 @@ export default function Enrollment() {
     setUpdateFpModalOpen(false);
     setUpdateFpStep("IDLE");
     setUpdateFpTarget(null);
-    fetch(`${API_URL}/api/v1/hardware/zkteco/disarm-update-fp`, { method: "POST" }).catch(() => {});
+    apiFetch(`/api/v1/hardware/zkteco/disarm-update-fp`, { method: "POST" }).catch(() => {});
   };
 
   const armUpdateFpScanner = async () => {
@@ -393,7 +417,7 @@ export default function Enrollment() {
     setUpdateFpQuality(null);
 
     try {
-      const armRes = await fetch(`${API_URL}/api/v1/hardware/zkteco/arm-update-fp`, {
+      const armRes = await apiFetch(`/api/v1/hardware/zkteco/arm-update-fp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -412,7 +436,7 @@ export default function Enrollment() {
 
       updateFpPollRef.current = setInterval(async () => {
         try {
-          const res = await fetch(`${API_URL}/api/v1/hardware/zkteco/update-fp-status`, { cache: "no-store" });
+          const res = await apiFetch(`/api/v1/hardware/zkteco/update-fp-status`, { cache: "no-store" });
           const json = await res.json();
 
           if (json.data?.lastResult) {
@@ -449,37 +473,9 @@ export default function Enrollment() {
   const disarmUpdateFpScanner = async () => {
     if (updateFpPollRef.current) clearInterval(updateFpPollRef.current);
     try {
-      await fetch(`${API_URL}/api/v1/hardware/zkteco/disarm-update-fp`, { method: "POST" });
+      await apiFetch(`/api/v1/hardware/zkteco/disarm-update-fp`, { method: "POST" });
     } catch {}
     setUpdateFpStep("IDLE");
-  };
-
-  const simulateUpdateFpTouch = async () => {
-    if (!updateFpTarget) return;
-    try {
-      // If not already armed, arm it first so backend recognizes update mode
-      if (updateFpStep !== "ARMED_WAITING") {
-        await fetch(`${API_URL}/api/v1/hardware/zkteco/arm-update-fp`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            studentId: updateFpTarget._id,
-            name: updateFpTarget.name,
-            rollNo: updateFpTarget.rollNo,
-          }),
-        });
-        setUpdateFpStep("ARMED_WAITING");
-      }
-      await fetch(`${API_URL}/api/v1/hardware/zkteco`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          fingerprintId: updateFpSlot,
-          template: `LIVE20R_UPDATE_SIM_${Date.now()}`,
-          quality: 99,
-        }),
-      });
-    } catch {}
   };
 
   const handleDelete = async (id: string, name: string) => {
@@ -488,12 +484,16 @@ export default function Enrollment() {
     }
 
     try {
-      await fetch(`${API_URL}/api/v1/students/${id}`, { method: "DELETE" });
+      const res = await apiFetch(`/api/v1/students/${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        alert(json.message || "Could not de-enroll this person.");
+        return;
+      }
       setResidents(prev => prev.filter(r => r._id !== id));
       setMessage(`✓ Biometric template and records for ${name} permanently erased.`);
     } catch {
-      setResidents(prev => prev.filter(r => r._id !== id));
-      setMessage(`✓ Biometric template for ${name} permanently erased.`);
+      alert("Backend unreachable: nothing was deleted.");
     }
   };
 
@@ -503,8 +503,8 @@ export default function Enrollment() {
     setSimResult({
       status: "MATCH",
       latencyMs: latency,
-      relay: "12V PULSED (Turnstile Solenoid Released)",
-      lifeSafety: "Egress verified safe · Curfew lock exempt for exits",
+      relay: "No lock hardware: guard opens the door",
+      lifeSafety: "Result is shown to Security; guard decides",
       personName: person.name,
     });
   };
@@ -725,14 +725,14 @@ export default function Enrollment() {
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <span className="text-xs font-mono px-2 py-0.5 rounded bg-green-500/20 text-green-400 font-bold border border-green-500/30">
-                LOCAL GATEWAY MATCH: {simResult.latencyMs}ms (&lt;40ms NFR-10 COMPLIANT)
+                SIMULATED CHECK (no reader involved)
               </span>
               <span className="text-xs font-bold text-ng-text font-display">
                 {simPerson.name} ({simPerson.rollNo}) · Biometric ID: {simPerson.fingerprintId}
               </span>
             </div>
             <p className="text-xs font-mono text-ng-secondary m-0">
-              Hardware Relay: <span className="text-green-400 font-semibold">{simResult.relay}</span> · Life Safety: <span className="text-blue-300">{simResult.lifeSafety}</span>
+              Door: <span className="text-green-400 font-semibold">{simResult.relay}</span> · Note: <span className="text-blue-300">{simResult.lifeSafety}</span>
             </p>
           </div>
           <button
@@ -849,7 +849,7 @@ export default function Enrollment() {
               <input
                 value={formRoom}
                 onChange={e => setFormRoom(e.target.value)}
-                placeholder={formCategory === "STUDENT" ? "Room 304, Block B" : formCategory === "WORKER" ? "Central Mess Kitchen" : "Warden Office / Main Turnstile"}
+                placeholder={formCategory === "STUDENT" ? "Room 304, Block B" : formCategory === "WORKER" ? "Central Mess Kitchen" : "Warden Office / Main Gate"}
                 className="w-full rounded-xl px-3.5 py-2.5 bg-ng-elevated border border-ng-border text-ng-text outline-none focus:border-ng-orange"
               />
             </div>
@@ -1275,14 +1275,6 @@ export default function Enrollment() {
               </button>
             )}
 
-            <button
-              type="button"
-              onClick={simulateUpdateFpTouch}
-              className="text-[11px] font-mono text-ng-muted hover:text-ng-secondary underline bg-transparent border-none cursor-pointer py-1"
-              title="Only click if testing with physical USB hardware reader detached"
-            >
-              Simulate Finger Touch (Testing without USB)
-            </button>
 
             <button
               type="button"

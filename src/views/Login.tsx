@@ -7,6 +7,7 @@ import { useAppContext } from "../components/providers/AppProvider";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 const WS_URL = process.env.NEXT_PUBLIC_WS_URL || "http://localhost:3000";
+const SIMULATE = process.env.NEXT_PUBLIC_ENABLE_SIMULATE === "true"; // dev only; the API must also allow it
 
 interface Props {
   onLogin: () => void;
@@ -32,9 +33,10 @@ export default function Login({ onLogin, onBack }: Props) {
   const [thumbError, setThumbError] = useState<string | null>(null);
   const thumbPollRef = useRef<NodeJS.Timeout | null>(null);
   const thumbSocketRef = useRef<Socket | null>(null);
+  const thumbNonceRef = useRef<string | null>(null); // one-time session id for this thumb login
 
   const [staffFps, setStaffFps] = useState<Record<string, string>>({
-    admin: "FP-ADM-03",
+    admin: "FP-ADM-05",
     warden: "FP-WRD-03",
     security: "FP-SEC-05",
   });
@@ -58,7 +60,7 @@ export default function Login({ onLogin, onBack }: Props) {
   const getStaffFp = (role?: string | null) => {
     if (!role) return "FP-001";
     const r = role.toLowerCase();
-    return staffFps[r] || (r === "admin" ? "FP-ADM-03" : r === "security" ? "FP-SEC-05" : "FP-WRD-03");
+    return staffFps[r] || (r === "admin" ? "FP-ADM-05" : r === "security" ? "FP-SEC-05" : "FP-WRD-03");
   };
 
   useEffect(() => {
@@ -137,34 +139,17 @@ export default function Login({ onLogin, onBack }: Props) {
         localStorage.setItem("ng_user", JSON.stringify(json.data.user));
         setUser(json.data.user);
       } else {
-        const demoUser = email.toLowerCase().includes("admin")
-          ? { id: "demo-admin", email: email.trim(), role: "admin", name: "Admin" }
-          : email.toLowerCase().includes("security")
-            ? { id: "demo-security", email: email.trim(), role: "security", name: "Security" }
-            : { id: "demo-warden", email: email.trim(), role: "warden", name: "Warden" };
-        localStorage.setItem("ng_user", JSON.stringify(demoUser));
-        setUser(demoUser);
+        throw new Error("Malformed login response");
       }
       // Set role cookie for proxy route guarding
-      const activeRole = (json.data?.user?.role || (email.toLowerCase().includes("admin") ? "admin" : email.toLowerCase().includes("security") ? "security" : "warden")).toLowerCase();
+      const activeRole = String(json.data.user.role).toLowerCase();
       document.cookie = `ng_role=${activeRole}; path=/; max-age=86400; SameSite=Lax`;
 
       // Session cookie for optimistic auth
       document.cookie = "ng_session=true; path=/; max-age=86400; SameSite=Lax";
       onLogin();
     } catch {
-      // Fallback: allow demo login if backend is not running
-      console.warn("Backend unreachable — using demo fallback");
-      const demoUser = email.toLowerCase().includes("admin")
-        ? { id: "demo-admin", email: email.trim(), role: "admin", name: "Admin" }
-        : email.toLowerCase().includes("security")
-          ? { id: "demo-security", email: email.trim(), role: "security", name: "Security" }
-          : { id: "demo-warden", email: email.trim(), role: "warden", name: "Warden" };
-      localStorage.setItem("ng_user", JSON.stringify(demoUser));
-      setUser(demoUser);
-      document.cookie = `ng_role=${demoUser.role}; path=/; max-age=86400; SameSite=Lax`;
-      document.cookie = "ng_session=true; path=/; max-age=86400; SameSite=Lax";
-      onLogin();
+      setError("Cannot reach the NestGuard server. Check your connection and try again.");
     } finally {
       setLoading(false);
     }
@@ -230,39 +215,20 @@ export default function Login({ onLogin, onBack }: Props) {
 
     try {
       // 1. Arm backend for physical thumb touch on Live20R (role is null for ANY matching staff!)
-      await fetch(`${API_URL}/api/v1/hardware/zkteco/arm-login`, {
+      const armRes = await fetch(`${API_URL}/api/v1/hardware/zkteco/arm-login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ role: targetRole || null }),
       });
+      const armJson = await armRes.json();
+      thumbNonceRef.current = armJson.data?.nonce ?? null;
+      if (!armRes.ok || !thumbNonceRef.current) throw new Error(armJson.message || "arm failed");
 
-      // 2. Real-time push via Socket.IO (<5ms instantaneous response on touch)
-      if (thumbSocketRef.current) {
-        thumbSocketRef.current.disconnect();
-      }
-      const socket = io(WS_URL, {
-        reconnectionAttempts: 5,
-        transports: ["websocket", "polling"],
-      });
-      thumbSocketRef.current = socket;
-
-      socket.on("biometric_login_success", (result) => {
-        if (result?.success && result?.user) {
-          handleThumbLoginSuccess(result);
-        }
-      });
-
-      socket.on("biometric_login_failed", (err) => {
-        if (err?.error) {
-          setThumbError(err.error);
-        }
-      });
-
-      // 3. Relaxed low-frequency fallback poll (every 2.5s instead of aggressive 500ms flood)
+      // 2. Poll with the one-time session nonce: the token is only ever handed to this browser
       if (thumbPollRef.current) clearInterval(thumbPollRef.current);
       thumbPollRef.current = setInterval(async () => {
         try {
-          const res = await fetch(`${API_URL}/api/v1/hardware/zkteco/login-status`, { cache: "no-store" });
+          const res = await fetch(`${API_URL}/api/v1/hardware/zkteco/login-status?nonce=${encodeURIComponent(thumbNonceRef.current || "")}`, { cache: "no-store" });
           const json = await res.json();
           if (json.data?.lastResult) {
             const r = json.data.lastResult;
@@ -273,7 +239,7 @@ export default function Login({ onLogin, onBack }: Props) {
             }
           }
         } catch {}
-      }, 2500);
+      }, 1000);
     } catch {
       setThumbError("Failed to arm Live20R gateway. Please check that backend is running.");
     }
@@ -289,7 +255,12 @@ export default function Login({ onLogin, onBack }: Props) {
       thumbSocketRef.current = null;
     }
     try {
-      await fetch(`${API_URL}/api/v1/hardware/zkteco/disarm-login`, { method: "POST" });
+      await fetch(`${API_URL}/api/v1/hardware/zkteco/disarm-login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nonce: thumbNonceRef.current }),
+      });
+      thumbNonceRef.current = null;
     } catch {}
     setThumbModalOpen(false);
     setWaitingThumb(false);
@@ -298,6 +269,7 @@ export default function Login({ onLogin, onBack }: Props) {
   };
 
   const simulateHardwareThumbTouch = async (roleOverride?: string) => {
+    if (!SIMULATE) return;
     const roleToScan = roleOverride || scanningRole || "warden";
     const fpId = getStaffFp(roleToScan);
     try {
@@ -578,10 +550,10 @@ export default function Login({ onLogin, onBack }: Props) {
 
             {/* Bottom Actions */}
             <div className="w-full flex flex-col gap-2 pt-2 border-t border-ng-border">
-              <span className="text-[10px] font-mono uppercase tracking-wider text-ng-muted">
+              <span className={`text-[10px] font-mono uppercase tracking-wider text-ng-muted ${SIMULATE ? "" : "hidden"}`}>
                 Simulate Touch Without USB Cable:
               </span>
-              <div className="grid grid-cols-3 gap-2">
+              <div className={`grid grid-cols-3 gap-2 ${SIMULATE ? "" : "hidden"}`}>
                 <button
                   type="button"
                   onClick={() => simulateHardwareThumbTouch("warden")}

@@ -24,7 +24,7 @@ export default function Visitors() {
 
   const approve = (id: number) =>
     setVisitors(v =>
-      v.map(x => (x.id === id ? { ...x, status: "approved" as VisitorStatus, notif: "Telegram" } : x)),
+      v.map(x => (x.id === id ? { ...x, status: "approved" as VisitorStatus, notif: "Email" } : x)),
     );
 
   const reject = (id: number) =>
@@ -48,7 +48,7 @@ export default function Visitors() {
       phone: formPhone || "+92 300 0000000",
       purpose: formPurpose || "General Visit",
       since: new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: false }),
-      notif: "Telegram",
+      notif: "Email",
       status: "pending",
     };
 
@@ -250,7 +250,7 @@ export default function Visitors() {
         isOpen={newModalOpen}
         onClose={() => setNewModalOpen(false)}
         title="Register New Visitor"
-        subtitle="Log visitor entry request and trigger resident Telegram verification"
+        subtitle="Log visitor entry request and resident verification (Phase-II preview)"
       >
         <form onSubmit={handleCreateVisitor} className="flex flex-col gap-5 text-sm">
           <div>

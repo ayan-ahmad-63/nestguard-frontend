@@ -1,54 +1,30 @@
-# NestGuard — Smart Hostel Biometric Access Control
+# NestGuard Dashboard (Next.js)
 
-NestGuard is an AI-powered smart access control and hardware security management platform tailored for student hostels and campus residences.
+Staff console for the NestGuard hostel access-control system: sign in (password or fingerprint), enrol residents,
+watch live gate scans, review logs and alerts. Talks to the FastAPI backend (`nestguard-backend`).
 
-## Architecture
-
+## Run
+```bash
+npm install
+cp .env.local.example .env.local      # set JWT_SECRET to the SAME value as the backend's JWT_SECRET
+npm run dev                            # http://localhost:5000
 ```
-nestguard-frontend/
-├── docs/
-│   ├── NEXTJS_GUIDE.md           # Guide for Next.js App Router / Pages migration
-│   └── nestguard-ui-design.md     # Design token specification & UI prompt
-├── src/
-│   ├── components/
-│   │   ├── layout/
-│   │   │   ├── Sidebar.tsx        # Collapsible icon-rail navigation
-│   │   │   └── TopBar.tsx         # Global search, alerts popover, theme toggle, admin menu
-│   │   └── ui/
-│   │       ├── Avatar.tsx         # Reusable initials avatar with status rings
-│   │       ├── Icon3D.tsx         # Bespoke volumetric 3D security SVG icons
-│   │       ├── Logo.tsx           # Responsive brand mark and horizontal lockup
-│   │       ├── Modal.tsx          # Accessible backdrop modal dialogs
-│   │       ├── StatusPill.tsx     # Pulsing hardware and security beacon indicators
-│   │       └── ThemeToggle.tsx    # Smooth dark/light mode toggle
-│   ├── lib/
-│   │   ├── constants.ts           # Brand palette, typography tokens, elevation shadows
-│   │   └── utils.ts               # Classnames helper, time formatting, CSV export
-│   ├── pages/
-│   │   ├── AccessLogs.tsx         # Full-audit access review table with CSV export
-│   │   ├── Alerts.tsx             # Severity-ranked security incident feed with acknowledgment
-│   │   ├── Analytics.tsx          # Multi-timeframe Recharts trend graph & behavioral risk
-│   │   ├── Dashboard.tsx          # Operations console, live feed, gate filter, AI review
-│   │   ├── DeviceHealth.tsx       # Hardware telemetry (battery, RSSI) & diagnostics
-│   │   ├── Gates.tsx              # Gate controllers with emergency unlock & lockdown
-│   │   ├── Landing.tsx            # Public marketing info landing page
-│   │   ├── LiveCamera.tsx         # 6-grid CCTV surveillance with live clock & focus zoom
-│   │   ├── Login.tsx              # Biometric & passcode security console authentication
-│   │   └── Visitors.tsx           # Visitor queue with registration modal & check-in
-│   ├── types/
-│   │   └── index.ts               # Strict TypeScript definitions
-│   ├── App.tsx                    # Root shell with global state & view router
-│   ├── index.css                  # Tailwind CSS v4 entrypoint & theme variables
-│   └── main.tsx                   # React 19 entrypoint
-├── index.html
-├── package.json
-├── tsconfig.json
-└── vite.config.ts
-```
+Start the backend first (`uvicorn app.asgi:app --port 3000`), then open the dashboard.
 
-## Tech Stack
-- **Framework**: React 19 + TypeScript (strict mode)
-- **Styling**: Tailwind CSS v4 (`@tailwindcss/vite`) + CSS Custom Properties for dynamic theming
-- **Icons**: Handcrafted Tabler outline SVGs + Bespoke 3D volumetric feature icons
-- **Charts**: Recharts (`ResponsiveContainer`, `LineChart`)
-- **Compatibility**: 100% portable to **Next.js App Router** (see [docs/NEXTJS_GUIDE.md](file:///d:/NestGuard/nestguard-frontend/docs/NEXTJS_GUIDE.md))
+## Phase-I scope
+| Page | Status |
+|---|---|
+| Login (email/password and thumb login with the Live20R) | Phase-I, live |
+| Dashboard (live scan feed), Access Logs, Security Alerts | Phase-I, live |
+| Enrollment (enrol, update finger, edit, de-enrol) | Phase-I, live |
+| Gates & Readers (gate list, live connection, recent scans) | Phase-I, live |
+| Visitors, Analytics, Live Camera, Device Health | Phase-II preview (marked "P2", sample/incomplete data) |
+
+The gate is verify-and-log: the reader shows VERIFIED or REJECTED, the guard opens the door. There is no lock control.
+
+## Roles
+Route access is enforced in `src/proxy.ts` from the signed JWT only (cookies like `ng_role` are never trusted):
+Admin = every page, Warden = no Gates/Devices, Security = no Alerts/Analytics. The backend re-checks every API call.
+
+## Stack
+Next.js 16, React 19, TypeScript, Tailwind CSS 4, `socket.io-client`.

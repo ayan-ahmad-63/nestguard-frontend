@@ -34,7 +34,7 @@ export const ROLE_PERMISSIONS: Record<Role, RoleConfig> = {
     badge: "Security",
     allowedPages: ["dashboard", "enrollment", "gates", "logs", "visitors", "camera", "devices"],
     allowedRoutes: ["/dashboard", "/enrollment", "/gates", "/logs", "/visitors", "/camera", "/devices"],
-    description: "Physical gate operations, biometric enrollment, visitor check-in, and turnstile monitoring.",
+    description: "Physical gate operations, biometric enrollment, visitor check-in, and gate verification.",
   },
 };
 

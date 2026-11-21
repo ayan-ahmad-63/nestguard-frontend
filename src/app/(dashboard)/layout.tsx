@@ -5,17 +5,18 @@ import Sidebar from "@/components/layout/Sidebar";
 import TopBar from "@/components/layout/TopBar";
 import { useAppContext } from "@/components/providers/AppProvider";
 import type { Page } from "@/types";
+import { isPhaseII } from "@/lib/phase";
 
 const PAGE_TITLES: Record<string, { title: string; subtitle: string; page: Page }> = {
   "/dashboard": { title: "Operations Console", subtitle: "Real-time security telemetry & access feed", page: "dashboard" },
   "/enrollment": { title: "Biometric Resident & Personnel Enrollment", subtitle: "ZKTeco Live20R SilkID biometric registration & resident records", page: "enrollment" },
-  "/gates": { title: "Gate & Device Controllers", subtitle: "Turnstile barriers and optical biometric readers", page: "gates" },
+  "/gates": { title: "Gates & Readers", subtitle: "Entry and exit biometric readers", page: "gates" },
   "/logs": { title: "Access Audit Log", subtitle: "Immutable cryptographic entry & egress timestamps", page: "logs" },
   "/visitors": { title: "Visitor Pass Management", subtitle: "Host authorization and entry pass approval", page: "visitors" },
   "/alerts": { title: "Security Alerts Feed", subtitle: "Critical incident queue & hardware anomaly notifications", page: "alerts" },
   "/analytics": { title: "Intelligence & Analytics", subtitle: "Hostel traffic distribution & student behavioral risk scoring", page: "analytics" },
   "/camera": { title: "Surveillance Monitoring", subtitle: "High-definition CCTV gateway feeds", page: "camera" },
-  "/devices": { title: "Hardware Device Health", subtitle: "Battery state of charge, wireless RSSI & heartbeat status", page: "devices" },
+  "/devices": { title: "Hardware Device Health", subtitle: "Reader connection and heartbeat status", page: "devices" },
 };
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -70,6 +71,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   {routeInfo.subtitle}
                 </p>
               </div>
+              {isPhaseII(page) && (
+                <div className="mb-6 px-4 py-3 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-500 text-xs font-mono">
+                  Phase-II preview: not part of the Phase-I scope. Figures here may be sample data or incomplete.
+                </div>
+              )}
               {children}
             </main>
           </div>

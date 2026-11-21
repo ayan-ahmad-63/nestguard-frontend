@@ -198,7 +198,7 @@ export default function Dashboard({ onNavigate }: Props) {
                 </div>
 
                 <div className="text-xl font-bold font-display text-ng-text mb-1">
-                  Gate Post 01 · Turnstile
+                  Gate Post 01 · Reader
                 </div>
                 <div className="text-xs font-mono text-ng-muted mb-4">
                   Hardware Station · Ready for Scans
@@ -341,7 +341,7 @@ export default function Dashboard({ onNavigate }: Props) {
                 <div className="rounded-[2rem] border border-ng-border overflow-hidden shadow-2xl bg-ng-panel">
                   <div className="px-6 py-5 border-b border-ng-border flex items-center justify-between bg-ng-elevated/30">
                     <span className="text-sm font-semibold font-display text-ng-text">
-                      Turnstiles & Readers
+                      Gates & Readers
                     </span>
                     {onNavigate && (
                       <button
