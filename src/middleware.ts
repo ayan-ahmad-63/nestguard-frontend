@@ -23,7 +23,7 @@ const ROLE_ALLOWED_ROUTES: Record<string, string[]> = {
   security: ["/dashboard", "/enrollment", "/gates", "/logs", "/visitors", "/camera", "/devices"],
 };
 
-export async function proxy(req: NextRequest) {
+export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   const isProtected = PROTECTED_PREFIXES.some((prefix) => pathname.startsWith(prefix));
@@ -76,7 +76,7 @@ export async function proxy(req: NextRequest) {
   return response;
 }
 
-export default proxy;
+export default middleware;
 
 export const config = {
   matcher: ["/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"],

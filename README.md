@@ -23,8 +23,21 @@ Start the backend first (`uvicorn app.asgi:app --port 3000`), then open the dash
 The gate is verify-and-log: the reader shows VERIFIED or REJECTED, the guard opens the door. There is no lock control.
 
 ## Roles
-Route access is enforced in `src/proxy.ts` from the signed JWT only (cookies like `ng_role` are never trusted):
+Route access is enforced in `src/middleware.ts` from the signed JWT only (cookies like `ng_role` are never trusted):
 Admin = every page, Warden = no Gates/Devices, Security = no Alerts/Analytics. The backend re-checks every API call.
 
 ## Stack
 Next.js 16, React 19, TypeScript, Tailwind CSS 4, `socket.io-client`.
+
+## Deploy to Cloudflare (CI/CD)
+Pushing to `main` runs `.github/workflows/deploy.yml`: type-check, OpenNext build, deploy to Cloudflare Workers.
+
+One-time setup:
+1. `npm i -D @opennextjs/cloudflare wrangler` and commit the updated `package.json` + `package-lock.json`.
+2. Cloudflare dashboard > My Profile > API Tokens > create a token from the "Edit Cloudflare Workers" template; copy your Account ID.
+3. GitHub repo > Settings > Secrets and variables > Actions:
+   - Secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `JWT_SECRET` (must equal the backend's `JWT_SECRET`)
+   - Variables: `NEXT_PUBLIC_API_URL` (public HTTPS URL of the FastAPI backend), `NEXT_PUBLIC_MARKETING_URL`
+4. On the backend set `CLIENT_URL` to the deployed `https://nestguard-frontend.<account>.workers.dev` URL so CORS and Socket.IO accept it.
+
+Note: Next.js 16 `proxy.ts` is not yet supported by the Cloudflare adapter, so the route guard lives in `src/middleware.ts`.
