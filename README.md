@@ -30,14 +30,10 @@ Admin = every page, Warden = no Gates/Devices, Security = no Alerts/Analytics. T
 Next.js 16, React 19, TypeScript, Tailwind CSS 4, `socket.io-client`.
 
 ## Deploy to Cloudflare (CI/CD)
-Pushing to `main` runs `.github/workflows/deploy.yml`: type-check, OpenNext build, deploy to Cloudflare Workers.
+Cloudflare Workers Builds deploys on every push to `main` (build: `npm run cf:build`, deploy: `npx opennextjs-cloudflare deploy`). `.github/workflows/ci.yml` type-checks and builds on every push and pull request.
 
-One-time setup:
-1. `npm i -D @opennextjs/cloudflare wrangler` and commit the updated `package.json` + `package-lock.json`.
-2. Cloudflare dashboard > My Profile > API Tokens > create a token from the "Edit Cloudflare Workers" template; copy your Account ID.
-3. GitHub repo > Settings > Secrets and variables > Actions:
-   - Secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `JWT_SECRET` (must equal the backend's `JWT_SECRET`)
-   - Variables: `NEXT_PUBLIC_API_URL` (public HTTPS URL of the FastAPI backend), `NEXT_PUBLIC_MARKETING_URL`
-4. On the backend set `CLIENT_URL` to the deployed `https://nestguard-frontend.<account>.workers.dev` URL so CORS and Socket.IO accept it.
+Set these in Cloudflare > Workers > nestguard-frontend > Settings > Build (build variables) and Settings > Variables and secrets (runtime):
+- `NEXT_PUBLIC_API_URL` (public HTTPS URL of the FastAPI backend), `NEXT_PUBLIC_MARKETING_URL`, `JWT_SECRET` (must equal the backend's `JWT_SECRET`).
+- On the backend set `EXTRA_ORIGINS` to the deployed `https://nestguard-frontend.<account>.workers.dev` URL so CORS and Socket.IO accept it.
 
 Note: Next.js 16 `proxy.ts` is not yet supported by the Cloudflare adapter, so the route guard lives in `src/middleware.ts`.
